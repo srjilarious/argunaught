@@ -5,11 +5,11 @@
 
 int main(int argc, char** argv)
 {
-    auto args = argunaught::parser()
+    auto args = argunaught::Parser()
         .command(
-            "version", [] () { printf("Version: 1\n"); }
+            "version", [] (auto& parseResult) -> int { printf("Version: 1\n"); }
         )
         .command(
-            "sub", [] () { /*argunaught::opt("h", "help")*/ } 
+            "sub", [] (auto& parseResult) -> int { /*argunaught::opt("h", "help")*/ } 
         );
 }
