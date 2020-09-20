@@ -4,6 +4,7 @@
 #include <vector>
 #include <functional>
 #include <unordered_map>
+#include <memory>
 
 namespace argunaught
 {
@@ -16,14 +17,29 @@ struct Option
     std::vector<std::string> values;
 };
 
+using OptionsList = std::vector<Option>;
+struct Command;
+
+struct Error {
+    int pos;
+    std::string value;
+};
+
 class ParseResult
 {
-// public:
+public:
+    // Options found, merged result of global and command options.
+    OptionsList options;
+
+    // Command selected, if any.
+    std::shared_ptr<Command> command;
+
+    std::vector<Error> errors;
+    bool hasError() const { return errors.size() > 0; }
 //     OptionsList globalOptions;
 //     CommandList commands;
 };
 
-using OptionsList = std::vector<Option>;
 using CommandHandler = std::function<int (ParseResult&)>;
 
 struct Command
@@ -35,13 +51,15 @@ struct Command
     //Command& options(OptionsList options);
 };
 
-using CommandList = std::vector<Command>;
+using CommandList = std::vector<std::shared_ptr<Command>>;
 
 class Parser
 {
 private:
     CommandList mCommands;
     OptionsList mOptions;
+
+    Option parseOption(std::vector<std::string>& parseText);
 
 public:
     Parser();
@@ -52,6 +70,8 @@ public:
 
     const CommandList& commands() const { return mCommands; }
     const OptionsList& options() const { return mOptions; }
+
+    ParseResult parse(int argc, char* argv[]) const;
 };
 
 }

@@ -20,8 +20,8 @@ int main(int argc, char** argv)
     printf("Commands:\n");
     for(auto& command : args.commands()) 
     {
-        printf("'%s':\n", command.name.c_str());
-        for(auto& option : command.options) {
+        printf("'%s':\n", command->name.c_str());
+        for(auto& option : command->options) {
             printf("    '%s', '%s' - %s\n", 
                 option.shortName.c_str(), 
                 option.longName.c_str(), 
@@ -29,4 +29,6 @@ int main(int argc, char** argv)
         }
         printf("\n");
     }
+
+    args.parse(argc, argv);
 }
