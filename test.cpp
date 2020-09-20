@@ -10,6 +10,23 @@ int main(int argc, char** argv)
             "version", [] (auto& parseResult) -> int { printf("Version: 1\n"); }
         )
         .command(
-            "sub", [] (auto& parseResult) -> int { /*argunaught::opt("h", "help")*/ } 
+            "sub", 
+            {
+                {"test", "t", "A test option.", 0}
+            },
+            [] (auto& parseResult) -> int { /*argunaught::opt("h", "help")*/ } 
         );
+
+    printf("Commands:\n");
+    for(auto& command : args.commands()) 
+    {
+        printf("'%s':\n", command.name.c_str());
+        for(auto& option : command.options) {
+            printf("    '%s', '%s' - %s\n", 
+                option.shortName.c_str(), 
+                option.longName.c_str(), 
+                option.description.c_str());
+        }
+        printf("\n");
+    }
 }

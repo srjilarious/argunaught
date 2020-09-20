@@ -37,7 +37,6 @@ struct Command
 
 using CommandList = std::vector<Command>;
 
-
 class Parser
 {
 private:
@@ -51,6 +50,8 @@ public:
     Parser& command(std::string name, OptionsList options, CommandHandler func);
     Parser& options(OptionsList options);
 
+    const CommandList& commands() const { return mCommands; }
+    const OptionsList& options() const { return mOptions; }
 };
 
 }
