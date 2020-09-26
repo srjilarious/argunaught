@@ -61,6 +61,8 @@ public:
     // Options found, merged result of global and command options.
     OptionResultList options;
 
+    std::vector<std::string> positionalArgs;
+
     // Command selected, if any.
     std::shared_ptr<Command> command;
 
@@ -89,7 +91,9 @@ private:
     CommandList mCommands;
     OptionList mOptions;
 
-    OptionResult parseOption(std::deque<std::string>& parseText) const;
+    OptionResult parseOption(
+            std::shared_ptr<Command> command, 
+            std::deque<std::string>& parseText) const;
 
 public:
     Parser();

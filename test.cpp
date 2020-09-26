@@ -12,7 +12,9 @@ int main(int argc, char** argv)
         .command(
             "sub", 
             {
-                {"test", "t", "A test option.", 0}
+                {"test", "t", "A test option.", 0},
+                {"alpha", "a", "cool option", -1},
+                {"beta", "b", "cool other option", 2}
             },
             [] (auto& parseResult) -> int { /*argunaught::opt("h", "help")*/ } 
         );

@@ -51,6 +51,7 @@ Parser::options(
 OptionList::OptionList(std::vector<Option> opts)
 {
     for(auto& opt : opts) {
+        printf("Adding option -%s, --%s\n", opt.shortName.c_str(), opt.longName.c_str());
         addOption(opt);
     }
 }
@@ -64,8 +65,10 @@ OptionList::addOption(Option opt)
 std::optional<Option> 
 OptionList::findShortOption(std::string optionName) const
 {
+    printf("Looking for short option, have %d options\n", mOptions.size());
     auto it = std::find_if(std::begin(mOptions), std::end(mOptions), [optionName] (const Option& opt) {
-        return opt.longName == optionName;
+        printf("Checking '%s' against '%s'\n", optionName.c_str(), opt.shortName.c_str());
+        return opt.shortName == optionName;
     });
 
     if(it != mOptions.end()) {
@@ -79,10 +82,11 @@ std::optional<Option>
 OptionList::findLongOption(std::string optionName) const
 {
     auto it = std::find_if(std::begin(mOptions), std::end(mOptions), [optionName] (const Option& opt) {
-        return opt.shortName == optionName;
+        return opt.longName == optionName;
     });
 
     if(it != mOptions.end()) {
+        printf("Found short option in parser.");
         return std::optional<Option>(*it);
     }
 
@@ -90,7 +94,8 @@ OptionList::findLongOption(std::string optionName) const
 }
 
 OptionResult 
-Parser::parseOption(std::deque<std::string>& parseText) const
+Parser::parseOption(std::shared_ptr<Command> command, 
+                    std::deque<std::string>& parseText) const
 {
     OptionResult optResult;
 
@@ -111,18 +116,18 @@ Parser::parseOption(std::deque<std::string>& parseText) const
         // Skip over '--'
         optionName = optionFullName.substr(2);
         printf("Got long option name: '%s'\n", optionName.c_str());
-        opt = mOptions.findLongOption(optionName);
+        opt = command->options.findLongOption(optionName);
     }
     else {
         // Skip over '-'
         optionName = optionFullName.substr(1);
         printf("Got short option name: '%s'\n", optionName.c_str());
-        opt = mOptions.findShortOption(optionName);
+        opt = command->options.findShortOption(optionName);
     }
 
     parseText.pop_front();
-
-    if(opt != std::nullopt) {
+    printf("Option found: %s\n", opt.has_value() ? "True" : "False");
+    if(opt.has_value()) {
         Option& foundOption = opt.value();
         optResult.optionName = foundOption.longName;
 
@@ -133,11 +138,12 @@ Parser::parseOption(std::deque<std::string>& parseText) const
         while(!parseText.empty() && 
               (foundOption.maxNumParams == -1 || 
                paramCounter < foundOption.maxNumParams) &&
-              parseText.front()[0] == '-')
+              parseText.front()[0] != '-')
         {
             printf("Got option value: '%s'\n", parseText.front().c_str());
             optResult.values.push_back(parseText.front());
-            parseText.pop_front();    
+            parseText.pop_front();
+            paramCounter++; 
         }
     }
 
@@ -176,9 +182,16 @@ Parser::parse(int argc, char* argv[]) const
             result.command = com;
 
             args.pop_front();
-            while(!args.empty()) {
-                auto optResult = parseOption(args);
+            while(!args.empty() && args.front()[0] == '-') {
+                auto optResult = parseOption(com, args);
                 result.options.push_back(optResult);
+            }
+
+            // Anything left over is a positional argument.
+            while(!args.empty()) {
+                printf("Got positional arg: '%s'\n", args.front().c_str());
+                result.positionalArgs.push_back(args.front());
+                args.pop_front();
             }
             break;
         }
