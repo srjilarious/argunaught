@@ -98,7 +98,7 @@ public:
 
     Parser& command(std::string name, CommandHandler func);
     Parser& command(std::string name, std::vector<Option> options, CommandHandler func);
-    Parser& options(OptionList options);
+    Parser& options(std::vector<Option> options);
 
     const CommandList& commands() const { return mCommands; }
     const OptionList& options() const { return mOptions; }

@@ -6,6 +6,10 @@
 int main(int argc, char** argv)
 {
     auto args = argunaught::Parser()
+        .options({
+            {"gamma", "g", "A global option", 1},
+            {"delta", "d", "Another global option", 0}
+        })
         .command(
             "version", [] (auto& parseResult) -> int { printf("Version: 1\n"); }
         )

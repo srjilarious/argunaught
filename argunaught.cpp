@@ -39,12 +39,12 @@ Parser::command(
 
 Parser& 
 Parser::options(
-        OptionList options
+        std::vector<Option> options
     )
 {
-    // for(auto opt : options) {
-    //     mOptions.addOption(opt);
-    // }
+    for(auto opt : options) {
+        mOptions.addOption(opt);
+    }
     return *this;
 }
 
@@ -137,7 +137,7 @@ Parser::parseOption(std::shared_ptr<Command> command,
         if(command != nullptr) {
             opt = command->options.findShortOption(optionName);
         }
-        
+
         if(!opt.has_value()) {
             printf("No command option, checking for global option.\n");
             opt = mOptions.findShortOption(optionName);
