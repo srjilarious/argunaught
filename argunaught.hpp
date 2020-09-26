@@ -2,9 +2,12 @@
 
 #include <string>
 #include <vector>
+#include <deque>
+#include <algorithm>
 #include <functional>
 #include <unordered_map>
 #include <memory>
+#include <optional>
 
 namespace argunaught
 {
@@ -13,11 +16,38 @@ struct Option
 {
     std::string longName, shortName;
     std::string description;
-    int numParams = 0;
+    int maxNumParams = 0;
+};
+
+struct OptionResult
+{
+    std::string optionName;
     std::vector<std::string> values;
 };
 
-using OptionsList = std::vector<Option>;
+enum class OptionError
+{
+    None,
+    OptionAlreadyExists
+};
+
+class OptionList
+{
+private:
+    std::vector<Option> mOptions;
+
+public:
+    OptionList() {}
+
+    OptionList(std::vector<Option> opts);
+    OptionError addOption(Option opt);
+    std::optional<Option> findShortOption(std::string optionName) const;
+    std::optional<Option> findLongOption(std::string optionName) const;
+
+    const std::vector<Option>& values() const {return mOptions; }
+};
+
+using OptionResultList = std::vector<OptionResult>;
 struct Command;
 
 struct Error {
@@ -29,14 +59,14 @@ class ParseResult
 {
 public:
     // Options found, merged result of global and command options.
-    OptionsList options;
+    OptionResultList options;
 
     // Command selected, if any.
     std::shared_ptr<Command> command;
 
     std::vector<Error> errors;
     bool hasError() const { return errors.size() > 0; }
-//     OptionsList globalOptions;
+//     OptionList globalOptions;
 //     CommandList commands;
 };
 
@@ -44,11 +74,11 @@ using CommandHandler = std::function<int (ParseResult&)>;
 
 struct Command
 {
-    Command(std::string n, OptionsList opt, CommandHandler f);
+    Command(std::string n, std::vector<Option> opt, CommandHandler f);
     std::string name;
     CommandHandler handler;
-    OptionsList options;
-    //Command& options(OptionsList options);
+    OptionList options;
+    //Command& options(OptionList options);
 };
 
 using CommandList = std::vector<std::shared_ptr<Command>>;
@@ -57,19 +87,19 @@ class Parser
 {
 private:
     CommandList mCommands;
-    OptionsList mOptions;
+    OptionList mOptions;
 
-    Option parseOption(std::vector<std::string>& parseText);
+    OptionResult parseOption(std::deque<std::string>& parseText) const;
 
 public:
     Parser();
 
     Parser& command(std::string name, CommandHandler func);
-    Parser& command(std::string name, OptionsList options, CommandHandler func);
-    Parser& options(OptionsList options);
+    Parser& command(std::string name, std::vector<Option> options, CommandHandler func);
+    Parser& options(OptionList options);
 
     const CommandList& commands() const { return mCommands; }
-    const OptionsList& options() const { return mOptions; }
+    const OptionList& options() const { return mOptions; }
 
     ParseResult parse(int argc, char* argv[]) const;
 };

@@ -21,7 +21,7 @@ int main(int argc, char** argv)
     for(auto& command : args.commands()) 
     {
         printf("'%s':\n", command->name.c_str());
-        for(auto& option : command->options) {
+        for(auto& option : command->options.values()) {
             printf("    '%s', '%s' - %s\n", 
                 option.shortName.c_str(), 
                 option.longName.c_str(), 
