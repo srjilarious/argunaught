@@ -68,8 +68,6 @@ public:
 
     std::vector<Error> errors;
     bool hasError() const { return errors.size() > 0; }
-//     OptionList globalOptions;
-//     CommandList commands;
 };
 
 using CommandHandler = std::function<int (ParseResult&)>;
@@ -91,7 +89,7 @@ private:
     CommandList mCommands;
     OptionList mOptions;
 
-    OptionResult parseOption(
+    std::optional<OptionResult> parseOption(
             std::shared_ptr<Command> command, 
             std::deque<std::string>& parseText) const;
 

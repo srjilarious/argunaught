@@ -93,19 +93,23 @@ OptionList::findLongOption(std::string optionName) const
     return std::nullopt;
 }
 
-OptionResult 
+std::optional<OptionResult>
 Parser::parseOption(std::shared_ptr<Command> command, 
                     std::deque<std::string>& parseText) const
 {
     OptionResult optResult;
 
     // Expect atleast one value in parseText
-    // Expect first value begins with '-'
+    if(parseText.size() == 0) return std::nullopt;
 
     // Get the option name out.
     std::string optionFullName = parseText[0];
-    if(optionFullName.size() == 1) {
-        // Error, not option name
+
+    // Make sure the option is not just a - or --
+    if(optionFullName == "-" || 
+       optionFullName == "--") 
+    {
+           return std::nullopt;
     }
 
     std::string optionName;
@@ -116,13 +120,28 @@ Parser::parseOption(std::shared_ptr<Command> command,
         // Skip over '--'
         optionName = optionFullName.substr(2);
         printf("Got long option name: '%s'\n", optionName.c_str());
-        opt = command->options.findLongOption(optionName);
+        if(command != nullptr) {
+            opt = command->options.findLongOption(optionName);
+        }
+
+        if(!opt.has_value()) {
+            printf("No command option, checking for global option.\n");
+            opt = mOptions.findLongOption(optionName);
+        }
     }
     else {
         // Skip over '-'
         optionName = optionFullName.substr(1);
         printf("Got short option name: '%s'\n", optionName.c_str());
-        opt = command->options.findShortOption(optionName);
+
+        if(command != nullptr) {
+            opt = command->options.findShortOption(optionName);
+        }
+        
+        if(!opt.has_value()) {
+            printf("No command option, checking for global option.\n");
+            opt = mOptions.findShortOption(optionName);
+        }
     }
 
     parseText.pop_front();
@@ -134,7 +153,6 @@ Parser::parseOption(std::shared_ptr<Command> command,
         int paramCounter = 0;
 
         // Parse any values until the next option.
-        
         while(!parseText.empty() && 
               (foundOption.maxNumParams == -1 || 
                paramCounter < foundOption.maxNumParams) &&
@@ -145,9 +163,11 @@ Parser::parseOption(std::shared_ptr<Command> command,
             parseText.pop_front();
             paramCounter++; 
         }
+    
+        return std::optional<OptionResult>(optResult);
     }
 
-    return optResult;
+    return std::nullopt;
 }
 
 ParseResult
@@ -169,9 +189,12 @@ Parser::parse(int argc, char* argv[]) const
     if(args.size() == 0) return result;
 
     // parse any options before the command as global options
-    // while(args[0][0] == '-') {
-
-    // }
+    while(!args.empty() && args.front()[0] == '-') {
+        auto optResult = parseOption(nullptr, args);
+        if(optResult.has_value()) {
+            result.options.push_back(optResult.value());
+        }
+    }
 
     // Check for just options, no command.
     if(args.size() == 0) return result;
@@ -184,7 +207,9 @@ Parser::parse(int argc, char* argv[]) const
             args.pop_front();
             while(!args.empty() && args.front()[0] == '-') {
                 auto optResult = parseOption(com, args);
-                result.options.push_back(optResult);
+                if(optResult.has_value()) {
+                    result.options.push_back(optResult.value());
+                }
             }
 
             // Anything left over is a positional argument.
