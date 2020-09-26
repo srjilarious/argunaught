@@ -31,6 +31,24 @@ int main(int argc, char** argv)
         }
         printf("\n");
     }
+    
+    auto parseResult = args.parse(argc, argv);
 
-    args.parse(argc, argv);
+    if(parseResult.command) {
+        printf("Command: %s\n", parseResult.command->name.c_str());
+    }
+
+    printf("Options seen:\n");
+    for(int ii = 0; ii < parseResult.options.size(); ii++) {
+        auto& opt = parseResult.options[ii];
+        printf("    - %s:\n", opt.optionName.c_str());
+        for(int jj = 0; jj < opt.values.size(); jj++) {
+            printf("        - %s\n", opt.values[jj].c_str());
+        }
+    }
+
+    printf("Positional Args:\n");
+    for(int ii = 0; ii < parseResult.positionalArgs.size(); ii++) {
+        printf("    - %s\n", parseResult.positionalArgs[ii].c_str());
+    }
 }
