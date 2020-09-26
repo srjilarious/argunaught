@@ -55,4 +55,13 @@ int main(int argc, char** argv)
     for(int ii = 0; ii < parseResult.positionalArgs.size(); ii++) {
         printf("    - %s\n", parseResult.positionalArgs[ii].c_str());
     }
+
+    printf("Errors:\n");
+    for(int ii = 0; ii < parseResult.errors.size(); ii++) {
+        printf("    - %s\n", parseResult.errors[ii].value.c_str());
+    }
+
+    // TODO:
+    // Fix positional args not working for:
+    // ./test --gamma sub --yeta --delta 1 2 3 --alpha one two three
 }

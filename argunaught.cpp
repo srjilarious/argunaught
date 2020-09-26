@@ -95,7 +95,8 @@ OptionList::findLongOption(std::string optionName) const
 
 std::optional<OptionResult>
 Parser::parseOption(std::shared_ptr<Command> command, 
-                    std::deque<std::string>& parseText) const
+                    std::deque<std::string>& parseText,
+                    ParseResult& parseResult) const
 {
     OptionResult optResult;
 
@@ -165,6 +166,8 @@ Parser::parseOption(std::shared_ptr<Command> command,
         }
     
         return std::optional<OptionResult>(optResult);
+    } else {
+        parseResult.errors.push_back({-1, optionName});
     }
 
     return std::nullopt;
@@ -190,7 +193,7 @@ Parser::parse(int argc, char* argv[]) const
 
     // parse any options before the command as global options
     while(!args.empty() && args.front()[0] == '-') {
-        auto optResult = parseOption(nullptr, args);
+        auto optResult = parseOption(nullptr, args, result);
         if(optResult.has_value()) {
             result.options.push_back(optResult.value());
         }
@@ -206,7 +209,7 @@ Parser::parse(int argc, char* argv[]) const
 
             args.pop_front();
             while(!args.empty() && args.front()[0] == '-') {
-                auto optResult = parseOption(com, args);
+                auto optResult = parseOption(com, args, result);
                 if(optResult.has_value()) {
                     result.options.push_back(optResult.value());
                 }

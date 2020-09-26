@@ -91,7 +91,8 @@ private:
 
     std::optional<OptionResult> parseOption(
             std::shared_ptr<Command> command, 
-            std::deque<std::string>& parseText) const;
+            std::deque<std::string>& parseText,
+            ParseResult& parseResult) const;
 
 public:
     Parser();
