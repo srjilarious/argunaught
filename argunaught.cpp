@@ -86,7 +86,7 @@ OptionList::findLongOption(std::string optionName) const
     });
 
     if(it != mOptions.end()) {
-        printf("Found short option in parser.");
+        printf("Found long option in parser.");
         return std::optional<Option>(*it);
     }
 
@@ -117,7 +117,7 @@ Parser::parseOption(std::shared_ptr<Command> command,
     std::optional<Option> opt;
 
     // Check for a long name
-    if(optionFullName[1] == '-') {
+    if(optionFullName[0] == '-' && optionFullName[1] == '-') {
         // Skip over '--'
         optionName = optionFullName.substr(2);
         printf("Got long option name: '%s'\n", optionName.c_str());
@@ -130,7 +130,7 @@ Parser::parseOption(std::shared_ptr<Command> command,
             opt = mOptions.findLongOption(optionName);
         }
     }
-    else {
+    else if(optionFullName[0] == '-') {
         // Skip over '-'
         optionName = optionFullName.substr(1);
         printf("Got short option name: '%s'\n", optionName.c_str());
@@ -144,6 +144,9 @@ Parser::parseOption(std::shared_ptr<Command> command,
             opt = mOptions.findShortOption(optionName);
         }
     }
+    else {
+        return std::nullopt;
+    }
 
     parseText.pop_front();
     printf("Option found: %s\n", opt.has_value() ? "True" : "False");
@@ -152,6 +155,8 @@ Parser::parseOption(std::shared_ptr<Command> command,
         optResult.optionName = foundOption.longName;
 
         int paramCounter = 0;
+
+        printf("Checking for option values.\n");
 
         // Parse any values until the next option.
         while(!parseText.empty() && 
@@ -165,6 +170,7 @@ Parser::parseOption(std::shared_ptr<Command> command,
             paramCounter++; 
         }
     
+        printf("Done checking for option values. %d found\n", paramCounter);
         return std::optional<OptionResult>(optResult);
     } else {
         parseResult.errors.push_back({-1, optionName});
@@ -197,6 +203,9 @@ Parser::parse(int argc, char* argv[]) const
         if(optResult.has_value()) {
             result.options.push_back(optResult.value());
         }
+        else {
+            break;
+        }
     }
 
     // Check for just options, no command.
@@ -213,8 +222,15 @@ Parser::parse(int argc, char* argv[]) const
                 if(optResult.has_value()) {
                     result.options.push_back(optResult.value());
                 }
+                else {
+                    break;
+                }
+
+                printf("Done parsing option '%s', ended with %d params\n",
+                optResult.value().optionName.c_str(), optResult.value().values.size());
             }
 
+            printf("Checking positional args, %d left", args.size());
             // Anything left over is a positional argument.
             while(!args.empty()) {
                 printf("Got positional arg: '%s'\n", args.front().c_str());
