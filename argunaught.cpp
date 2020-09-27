@@ -110,6 +110,7 @@ Parser::parseOption(std::shared_ptr<Command> command,
     if(optionFullName == "-" || 
        optionFullName == "--") 
     {
+           parseText.pop_front();
            return std::nullopt;
     }
 
@@ -230,17 +231,18 @@ Parser::parse(int argc, char* argv[]) const
                 optResult.value().optionName.c_str(), optResult.value().values.size());
             }
 
-            printf("Checking positional args, %d left", args.size());
-            // Anything left over is a positional argument.
-            while(!args.empty()) {
-                printf("Got positional arg: '%s'\n", args.front().c_str());
-                result.positionalArgs.push_back(args.front());
-                args.pop_front();
-            }
+            
             break;
         }
     }
 
+    printf("Checking positional args, %d left", args.size());
+    // Anything left over is a positional argument.
+    while(!args.empty()) {
+        printf("Got positional arg: '%s'\n", args.front().c_str());
+        result.positionalArgs.push_back(args.front());
+        args.pop_front();
+    }
     return result;
 }
 
