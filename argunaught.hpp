@@ -12,6 +12,12 @@
 namespace argunaught
 {
 
+#ifdef TRACE_OPTIONS
+#define ARGUNAUGHT_TRACE(msg, ...) printf(msg, ...)
+#else
+#define ARGUNAUGHT_TRACE(msg, ...) 
+#endif
+
 struct Option
 {
     std::string longName, shortName;

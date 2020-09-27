@@ -51,7 +51,7 @@ Parser::options(
 OptionList::OptionList(std::vector<Option> opts)
 {
     for(auto& opt : opts) {
-        printf("Adding option -%s, --%s\n", opt.shortName.c_str(), opt.longName.c_str());
+        ARGUNAUGHT_TRACE("Adding option -%s, --%s\n", opt.shortName.c_str(), opt.longName.c_str());
         addOption(opt);
     }
 }
@@ -65,9 +65,9 @@ OptionList::addOption(Option opt)
 std::optional<Option> 
 OptionList::findShortOption(std::string optionName) const
 {
-    printf("Looking for short option, have %d options\n", mOptions.size());
+    ARGUNAUGHT_TRACE("Looking for short option, have %d options\n", mOptions.size());
     auto it = std::find_if(std::begin(mOptions), std::end(mOptions), [optionName] (const Option& opt) {
-        printf("Checking '%s' against '%s'\n", optionName.c_str(), opt.shortName.c_str());
+        ARGUNAUGHT_TRACE("Checking '%s' against '%s'\n", optionName.c_str(), opt.shortName.c_str());
         return opt.shortName == optionName;
     });
 
@@ -86,7 +86,7 @@ OptionList::findLongOption(std::string optionName) const
     });
 
     if(it != mOptions.end()) {
-        printf("Found long option in parser.");
+        ARGUNAUGHT_TRACE("Found long option in parser.");
         return std::optional<Option>(*it);
     }
 
@@ -121,27 +121,27 @@ Parser::parseOption(std::shared_ptr<Command> command,
     if(optionFullName[0] == '-' && optionFullName[1] == '-') {
         // Skip over '--'
         optionName = optionFullName.substr(2);
-        printf("Got long option name: '%s'\n", optionName.c_str());
+        ARGUNAUGHT_TRACE("Got long option name: '%s'\n", optionName.c_str());
         if(command != nullptr) {
             opt = command->options.findLongOption(optionName);
         }
 
         if(!opt.has_value()) {
-            printf("No command option, checking for global option.\n");
+            ARGUNAUGHT_TRACE("No command option, checking for global option.\n");
             opt = mOptions.findLongOption(optionName);
         }
     }
     else if(optionFullName[0] == '-') {
         // Skip over '-'
         optionName = optionFullName.substr(1);
-        printf("Got short option name: '%s'\n", optionName.c_str());
+        ARGUNAUGHT_TRACE("Got short option name: '%s'\n", optionName.c_str());
 
         if(command != nullptr) {
             opt = command->options.findShortOption(optionName);
         }
 
         if(!opt.has_value()) {
-            printf("No command option, checking for global option.\n");
+            ARGUNAUGHT_TRACE("No command option, checking for global option.\n");
             opt = mOptions.findShortOption(optionName);
         }
     }
@@ -150,14 +150,14 @@ Parser::parseOption(std::shared_ptr<Command> command,
     }
 
     parseText.pop_front();
-    printf("Option found: %s\n", opt.has_value() ? "True" : "False");
+    ARGUNAUGHT_TRACE("Option found: %s\n", opt.has_value() ? "True" : "False");
     if(opt.has_value()) {
         Option& foundOption = opt.value();
         optResult.optionName = foundOption.longName;
 
         int paramCounter = 0;
 
-        printf("Checking for option values.\n");
+        ARGUNAUGHT_TRACE("Checking for option values.\n");
 
         // Parse any values until the next option.
         while(!parseText.empty() && 
@@ -165,13 +165,13 @@ Parser::parseOption(std::shared_ptr<Command> command,
                paramCounter < foundOption.maxNumParams) &&
               parseText.front()[0] != '-')
         {
-            printf("Got option value: '%s'\n", parseText.front().c_str());
+            ARGUNAUGHT_TRACE("Got option value: '%s'\n", parseText.front().c_str());
             optResult.values.push_back(parseText.front());
             parseText.pop_front();
             paramCounter++; 
         }
     
-        printf("Done checking for option values. %d found\n", paramCounter);
+        ARGUNAUGHT_TRACE("Done checking for option values. %d found\n", paramCounter);
         return std::optional<OptionResult>(optResult);
     } else {
         parseResult.errors.push_back({-1, optionName});
@@ -214,7 +214,7 @@ Parser::parse(int argc, char* argv[]) const
 
     for(const auto& com : mCommands) {
         if(com->name == args[0]) {
-            printf("Found command '%s'\n", com->name.c_str());
+            ARGUNAUGHT_TRACE("Found command '%s'\n", com->name.c_str());
             result.command = com;
 
             args.pop_front();
@@ -227,7 +227,7 @@ Parser::parse(int argc, char* argv[]) const
                     break;
                 }
 
-                printf("Done parsing option '%s', ended with %d params\n",
+                ARGUNAUGHT_TRACE("Done parsing option '%s', ended with %d params\n",
                 optResult.value().optionName.c_str(), optResult.value().values.size());
             }
 
@@ -236,10 +236,10 @@ Parser::parse(int argc, char* argv[]) const
         }
     }
 
-    printf("Checking positional args, %d left", args.size());
+    ARGUNAUGHT_TRACE("Checking positional args, %d left", args.size());
     // Anything left over is a positional argument.
     while(!args.empty()) {
-        printf("Got positional arg: '%s'\n", args.front().c_str());
+        ARGUNAUGHT_TRACE("Got positional arg: '%s'\n", args.front().c_str());
         result.positionalArgs.push_back(args.front());
         args.pop_front();
     }
