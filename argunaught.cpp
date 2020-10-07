@@ -23,6 +23,7 @@ Parser::command(
         std::string name, 
         CommandHandler func)
 {
+    mCommands.push_back(std::shared_ptr<Command>(new Command(name, {}, func)));
     return *this;    
 }
 
@@ -60,6 +61,7 @@ OptionError
 OptionList::addOption(Option opt)
 {
     mOptions.push_back(opt);
+    return OptionError::None;
 }
 
 std::optional<Option> 

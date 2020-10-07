@@ -61,6 +61,11 @@ int main(int argc, char** argv)
         printf("    - %s\n", parseResult.errors[ii].value.c_str());
     }
 
+    // Run the associated command
+    if(parseResult.command) {
+        parseResult.command->handler(parseResult);
+    }
+
     // TODO:
     // Fix positional args not working for:
     // ./test --gamma sub --yeta --delta 1 2 3 --alpha one two three
