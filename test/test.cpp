@@ -1,6 +1,6 @@
 // Set of tests, blocking out how I want the API to look.
 
-#include <argunaught.hpp>
+#include <argunaught/argunaught.hpp>
 #include <stdio.h>
 
 int main(int argc, char** argv)

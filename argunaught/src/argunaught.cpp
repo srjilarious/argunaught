@@ -1,4 +1,4 @@
-#include "argunaught.hpp"
+#include <argunaught/argunaught.hpp>
 
 namespace argunaught
 {
