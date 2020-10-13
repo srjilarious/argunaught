@@ -92,6 +92,7 @@ using CommandList = std::vector<std::shared_ptr<Command>>;
 class Parser
 {
 private:
+    std::string mName;
     CommandList mCommands;
     OptionList mOptions;
 
@@ -101,7 +102,7 @@ private:
             ParseResult& parseResult) const;
 
 public:
-    Parser();
+    Parser(std::string programName);
 
     Parser& command(std::string name, CommandHandler func);
     Parser& command(std::string name, std::vector<Option> options, CommandHandler func);
@@ -110,6 +111,7 @@ public:
     const CommandList& commands() const { return mCommands; }
     const OptionList& options() const { return mOptions; }
 
+    std::string help() const;
     ParseResult parse(int argc, char* argv[]) const;
 };
 

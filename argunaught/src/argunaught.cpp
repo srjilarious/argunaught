@@ -13,9 +13,9 @@ Command::Command(
 {
 }
 
-Parser::Parser()
+Parser::Parser(std::string name)
+    : mName(name)
 {
-
 }
 
 Parser& 
@@ -47,6 +47,25 @@ Parser::options(
         mOptions.addOption(opt);
     }
     return *this;
+}
+
+std::string 
+Parser::help() const
+{
+    std::string help;
+    help = mName + "\n\n";
+    help += "Commands:\n";
+
+    for(auto com : mCommands) {
+        help += "    " + com->name + "\n";
+    }
+
+    help += "\nGlobal Options:\n";
+    for(auto opt : mOptions.values()) {
+        help += "    --" + opt.longName + ", -" + opt.shortName + ": " + opt.description + "\n";
+    }
+
+    return help;
 }
 
 OptionList::OptionList(std::vector<Option> opts)

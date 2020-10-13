@@ -5,7 +5,7 @@
 
 int main(int argc, char** argv)
 {
-    auto args = argunaught::Parser()
+    auto args = argunaught::Parser(argv[0])
         .options({
             {"gamma", "g", "A global option", 1},
             {"delta", "d", "Another global option", 0}
@@ -23,18 +23,7 @@ int main(int argc, char** argv)
             [] (auto& parseResult) -> int { /*argunaught::opt("h", "help")*/ } 
         );
 
-    printf("Commands:\n");
-    for(auto& command : args.commands()) 
-    {
-        printf("'%s':\n", command->name.c_str());
-        for(auto& option : command->options.values()) {
-            printf("    '%s', '%s' - %s\n", 
-                option.shortName.c_str(), 
-                option.longName.c_str(), 
-                option.description.c_str());
-        }
-        printf("\n");
-    }
+    printf("%s", args.help().c_str());
     
     auto parseResult = args.parse(argc, argv);
 
