@@ -58,6 +58,11 @@ Parser::help() const
 
     for(auto com : mCommands) {
         help += "    " + com->name + "\n";
+
+        for(auto opt : com->options.values()) {
+            help += "      --" + opt.longName + ", -" + opt.shortName + ": " + opt.description + "\n";
+        }
+        help += "\n";
     }
 
     help += "\nGlobal Options:\n";
