@@ -6,10 +6,11 @@ namespace argunaught
 
 Command::Command(
         std::string n, 
+        std::string h, 
         std::vector<Option> opt, 
         CommandHandler f
     )
-    : name(n), options(opt), handler(f)
+    : name(n), help(h), options(opt), handler(f)
 {
 }
 
@@ -21,20 +22,22 @@ Parser::Parser(std::string name)
 Parser& 
 Parser::command(
         std::string name, 
+        std::string help, 
         CommandHandler func)
 {
-    mCommands.push_back(std::shared_ptr<Command>(new Command(name, {}, func)));
+    mCommands.push_back(std::shared_ptr<Command>(new Command(name, help, {}, func)));
     return *this;    
 }
 
 Parser& 
 Parser::command(
         std::string name, 
+        std::string help, 
         std::vector<Option> options, 
         CommandHandler func
     )
 {
-    mCommands.push_back(std::make_shared<Command>(name, options, func));
+    mCommands.push_back(std::make_shared<Command>(name, help, options, func));
     return *this;
 }
 
@@ -53,11 +56,17 @@ std::string
 Parser::help() const
 {
     std::string help;
-    help = mName + "\n\n";
-    help += "Commands:\n";
+    help = mName + "\n";
+    
+    help += "\nGlobal Options:\n";
+    for(auto opt : mOptions.values()) {
+        help += "    --" + opt.longName + ", -" + opt.shortName + ": " + opt.description + "\n";
+    }
+
+    help += "\nCommands:\n";
 
     for(auto com : mCommands) {
-        help += "    " + com->name + "\n";
+        help += "    " + com->name + ": " + com->help + "\n";
 
         for(auto opt : com->options.values()) {
             help += "      --" + opt.longName + ", -" + opt.shortName + ": " + opt.description + "\n";
@@ -65,10 +74,6 @@ Parser::help() const
         help += "\n";
     }
 
-    help += "\nGlobal Options:\n";
-    for(auto opt : mOptions.values()) {
-        help += "    --" + opt.longName + ", -" + opt.shortName + ": " + opt.description + "\n";
-    }
 
     return help;
 }

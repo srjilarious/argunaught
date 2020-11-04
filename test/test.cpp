@@ -5,16 +5,16 @@
 
 int main(int argc, char** argv)
 {
-    auto args = argunaught::Parser(argv[0])
+    auto args = argunaught::Parser("Cool Test App")
         .options({
             {"gamma", "g", "A global option", 1},
             {"delta", "d", "Another global option", 0}
         })
         .command(
-            "version", [] (auto& parseResult) -> int { printf("Version: 1\n"); }
+            "version", "Gets the version.", [] (auto& parseResult) -> int { printf("Version: 1\n"); }
         )
         .command(
-            "sub", 
+            "sub", "An awesome sub-command.",
             {
                 {"test", "t", "A test option.", 0},
                 {"alpha", "a", "cool option", -1},

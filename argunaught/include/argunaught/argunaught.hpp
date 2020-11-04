@@ -80,8 +80,8 @@ using CommandHandler = std::function<int (ParseResult&)>;
 
 struct Command
 {
-    Command(std::string n, std::vector<Option> opt, CommandHandler f);
-    std::string name;
+    Command(std::string n, std::string h, std::vector<Option> opt, CommandHandler f);
+    std::string name, help;
     CommandHandler handler;
     OptionList options;
     //Command& options(OptionList options);
@@ -104,8 +104,8 @@ private:
 public:
     Parser(std::string programName);
 
-    Parser& command(std::string name, CommandHandler func);
-    Parser& command(std::string name, std::vector<Option> options, CommandHandler func);
+    Parser& command(std::string name, std::string help, CommandHandler func);
+    Parser& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func);
     Parser& options(std::vector<Option> options);
 
     const CommandList& commands() const { return mCommands; }
