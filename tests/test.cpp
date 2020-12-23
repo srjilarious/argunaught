@@ -11,7 +11,11 @@ int main(int argc, char** argv)
             {"delta", "d", "Another global option", 0}
         })
         .command(
-            "version", "Gets the version.", [] (auto& parseResult) -> int { printf("Version: 1\n"); }
+            "version", "Gets the version.", [] (auto& parseResult) -> int 
+            { 
+                printf("Version: 1\n"); 
+                return 0;
+            }
         )
         .command(
             "sub", "An awesome sub-command.",
@@ -20,7 +24,11 @@ int main(int argc, char** argv)
                 {"alpha", "a", "cool option", -1},
                 {"beta", "b", "cool other option", 2}
             },
-            [] (auto& parseResult) -> int { /*argunaught::opt("h", "help")*/ } 
+            [] (auto& parseResult) -> int 
+            { 
+                /*argunaught::opt("h", "help")*/ 
+                return 0;
+            } 
         );
 
     printf("%s", args.help().c_str());
