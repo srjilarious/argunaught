@@ -212,7 +212,7 @@ Parser::parseOption(std::shared_ptr<Command> command,
 }
 
 ParseResult
-Parser::parse(int argc, char* argv[]) const
+Parser::parse(int argc, const char* argv[]) const
 {
     ParseResult result;
 

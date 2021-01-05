@@ -3,7 +3,7 @@
 #include <argunaught/argunaught.hpp>
 #include <stdio.h>
 
-int main(int argc, char** argv)
+int main(int argc, const char* argv[])
 {
     auto args = argunaught::Parser("Cool Test App")
         .options({

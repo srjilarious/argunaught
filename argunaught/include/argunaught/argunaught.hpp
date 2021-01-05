@@ -112,7 +112,7 @@ public:
     const OptionList& options() const { return mOptions; }
 
     std::string help() const;
-    ParseResult parse(int argc, char* argv[]) const;
+    ParseResult parse(int argc, const char* argv[]) const;
 };
 
 }
