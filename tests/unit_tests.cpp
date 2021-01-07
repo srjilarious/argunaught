@@ -48,10 +48,10 @@ TEST_CASE( "Test sub-commands", "[options]" ) {
         REQUIRE(!parseResult.hasError());
         REQUIRE(parseResult.options.size() == 0);
         REQUIRE(parseResult.positionalArgs.size() == 0);
-        REQUIRE(parseResult.command != nullptr);
+        REQUIRE(parseResult.hasCommand());
         REQUIRE(parseResult.command->name == "sub");
 
-        parseResult.command->handler(parseResult);
+        parseResult.runCommand();
         REQUIRE(counter == 100);
     }
 }

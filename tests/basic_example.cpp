@@ -59,8 +59,8 @@ int main(int argc, const char* argv[])
     }
 
     // Run the associated command
-    if(parseResult.command) {
-        parseResult.command->handler(parseResult);
+    if(parseResult.hasCommand()) {
+        parseResult.runCommand();
     }
 
     // TODO:

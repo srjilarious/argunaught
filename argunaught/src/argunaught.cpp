@@ -124,6 +124,16 @@ OptionList::findLongOption(std::string optionName) const
     return std::nullopt;
 }
 
+int 
+ParseResult::runCommand() const
+{
+    if(command) {
+        return command->handler(*this);
+    }
+
+    return -1;
+}
+
 std::optional<OptionResult>
 Parser::parseOption(std::shared_ptr<Command> command, 
                     std::deque<std::string>& parseText,

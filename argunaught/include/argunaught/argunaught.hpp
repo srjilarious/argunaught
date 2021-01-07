@@ -74,9 +74,14 @@ public:
 
     std::vector<Error> errors;
     bool hasError() const { return errors.size() > 0; }
+    bool hasCommand() const { return command != nullptr; }
+
+    // Runs the sub command if there is one returning its value or
+    // if there is no sub-command returns -1.
+    int runCommand() const;
 };
 
-using CommandHandler = std::function<int (ParseResult&)>;
+using CommandHandler = std::function<int (const ParseResult&)>;
 
 struct Command
 {
