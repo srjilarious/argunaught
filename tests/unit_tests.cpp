@@ -55,3 +55,33 @@ TEST_CASE( "Test sub-commands", "[options]" ) {
         REQUIRE(counter == 100);
     }
 }
+
+TEST_CASE( "Test positional args", "[options]" ) {
+    auto argu = argunaught::Parser("Cool Test App")
+        .options(    
+            {{"gamma", "g", "A global option", 0}}
+        );
+
+    SECTION( "Just positional args should work") {
+        const char* args[] = {"test", "arg1", "arg2", "arg3"};
+        auto parseResult = argu.parse(4, args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 0);
+        REQUIRE(parseResult.positionalArgs.size() == 3);
+        REQUIRE(parseResult.positionalArgs[0] == "arg1");
+        REQUIRE(parseResult.positionalArgs[1] == "arg2");
+        REQUIRE(parseResult.positionalArgs[2] == "arg3");
+        REQUIRE(!parseResult.hasCommand());
+    }
+
+    SECTION( "Single option with positional args should work") {
+        const char* args[] = {"test", "-g", "arg1", "arg2"};
+        auto parseResult = argu.parse(4, args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 1);
+        REQUIRE(parseResult.positionalArgs.size() == 2);
+        REQUIRE(parseResult.positionalArgs[0] == "arg1");
+        REQUIRE(parseResult.positionalArgs[1] == "arg2");
+        REQUIRE(!parseResult.hasCommand());
+    }
+}
