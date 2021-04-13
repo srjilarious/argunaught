@@ -3,7 +3,6 @@
 namespace argunaught
 {
 
-
 Command::Command(
         std::string n, 
         std::string h, 
@@ -63,17 +62,19 @@ Parser::help() const
         help += "    --" + opt.longName + ", -" + opt.shortName + ": " + opt.description + "\n";
     }
 
-    help += "\nCommands:\n";
+    if( mCommands.size() > 0 )
+    {
+        help += "\nCommands:\n";
 
-    for(auto com : mCommands) {
-        help += "    " + com->name + ": " + com->help + "\n";
+        for(auto com : mCommands) {
+            help += "    " + com->name + ": " + com->help + "\n";
 
-        for(auto opt : com->options.values()) {
-            help += "      --" + opt.longName + ", -" + opt.shortName + ": " + opt.description + "\n";
+            for(auto opt : com->options.values()) {
+                help += "      --" + opt.longName + ", -" + opt.shortName + ": " + opt.description + "\n";
+            }
+            help += "\n";
         }
-        help += "\n";
     }
-
 
     return help;
 }

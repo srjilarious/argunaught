@@ -1,8 +1,8 @@
-A C++ option parser that handles sub-commands.
+A C++ option parser that handles global options, options with parameters, and sub-commands with command specific options as well.
 
 # Quick Example
 
-To use argunaught, you first define global options and any subcommands, which can have their own options.
+To use argunaught, you create a Parser object and define global options and any subcommands, which can have their own command specific options.
 
 ```
 auto args = argunaught::Parser("Cool Test App")
@@ -32,7 +32,7 @@ auto args = argunaught::Parser("Cool Test App")
     );
 ```
 
-You then parse your command line arguments with 
+You can then parse your command line arguments with 
 
 ```
 auto parseResult = args.parse(argc, argv);
@@ -50,21 +50,20 @@ if(parseResult.hasCommand()) {
 
 Where the sub-command will be provided the parse result so it can look at parameters and options on its own.
 
-You can look at option results (including their parameters) in the `ParseResult::options` vector:
+You can look at options that were parsed results (including their parameters) in the `ParseResult::options` vector of `OptionResult`s:
 
 ```
 parseResult.options[ii];
 ```
 
-and you can see any positional arguments with:
+Finally, you can also see any positional arguments with:
 
 ```
 parseResult.positionalArgs[ii]
 ```
 
 ## Some Notes on Usage
-Options can take parameters as seen above with `-g` taking 1 parameter.  You can also define an option to take an unknown number of parameters with `-1`.  
 
-Positional arguments start once the last option's parameters are full or with a separate `--` to mark the end of options.  E.g. `my_tool sub -a blah -- one two three` would count `one`, `two`, and `three` as positonal arguments even though the `-a` option takes an unknown number of arguments itself.
+Options can take parameters as seen above with `-g` taking 1 parameter.  You can also define an option to take an unknown number of parameters with `-1`.  These option parameters are read up to the next option or in the case of it being the last option before positional arguments, before a standalone `--`. 
 
-
+Therefore, positional arguments start once the last option's parameters are full or with a separate `--` to mark the end of options.  E.g. `my_tool sub -a blah -- one two three` would count `one`, `two`, and `three` as positonal arguments even if the `-a` option takes an unknown number of arguments itself.

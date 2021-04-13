@@ -13,7 +13,7 @@ namespace argunaught
 {
 
 #ifdef TRACE_OPTIONS
-#define ARGUNAUGHT_TRACE(msg, ...) printf(msg, ...)
+#define ARGUNAUGHT_TRACE(...) printf(__VA_ARGS__)
 #else
 #define ARGUNAUGHT_TRACE(msg, ...) 
 #endif
@@ -89,7 +89,6 @@ struct Command
     std::string name, help;
     CommandHandler handler;
     OptionList options;
-    //Command& options(OptionList options);
 };
 
 using CommandList = std::vector<std::shared_ptr<Command>>;
