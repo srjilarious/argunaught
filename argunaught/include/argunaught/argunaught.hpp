@@ -74,8 +74,16 @@ public:
 
     std::vector<Error> errors;
     bool hasError() const { return errors.size() > 0; }
-    bool hasCommand() const { return command != nullptr; }
 
+    // Returns whether a command was found.
+    bool hasCommand() const { return command != nullptr; }
+    
+    // Returns the option result and its params if it was found during parsing.
+    std::optional<OptionResult> getOption(std::string optionLongName) const;
+
+    // Returns whether the given option was found during parsing.
+    bool hasOption(std::string optionLongName) const;
+    
     // Runs the sub command if there is one returning its value or
     // if there is no sub-command returns -1.
     int runCommand() const;

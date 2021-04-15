@@ -79,6 +79,13 @@ TEST_CASE( "Test positional args", "[options]" ) {
         auto parseResult = argu.parse(4, args);
         REQUIRE(!parseResult.hasError());
         REQUIRE(parseResult.options.size() == 1);
+        
+        REQUIRE(parseResult.hasOption("gamma") == true);
+
+        auto gammaOptVal = parseResult.getOption("gamma").value();
+        REQUIRE(gammaOptVal.optionName == "gamma");
+        REQUIRE(gammaOptVal.values.size() == 0);
+
         REQUIRE(parseResult.positionalArgs.size() == 2);
         REQUIRE(parseResult.positionalArgs[0] == "arg1");
         REQUIRE(parseResult.positionalArgs[1] == "arg2");
