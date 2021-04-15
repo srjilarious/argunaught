@@ -5,7 +5,7 @@
 
 int main(int argc, const char* argv[])
 {
-    auto args = argunaught::Parser("Cool Test App")
+    auto args = argunaught::Parser("Cool Test App", "-=# Amazing app Version 1.0 #=-")
         .options({
             {"gamma", "g", "A global option", 1},
             {"delta", "d", "Another global option", 0}
@@ -31,7 +31,7 @@ int main(int argc, const char* argv[])
             } 
         );
 
-    printf("%s", args.help().c_str());
+    printf("%s", args.help(10, 20).c_str());
     
     auto parseResult = args.parse(argc, argv);
 

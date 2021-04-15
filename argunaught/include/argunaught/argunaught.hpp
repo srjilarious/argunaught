@@ -83,7 +83,7 @@ public:
 
     // Returns whether the given option was found during parsing.
     bool hasOption(std::string optionLongName) const;
-    
+
     // Runs the sub command if there is one returning its value or
     // if there is no sub-command returns -1.
     int runCommand() const;
@@ -99,12 +99,14 @@ struct Command
     OptionList options;
 };
 
-using CommandList = std::vector<std::shared_ptr<Command>>;
+using CommandPtr = std::shared_ptr<Command>;
+using CommandList = std::vector<CommandPtr>;
 
 class Parser
 {
 private:
     std::string mName;
+    std::string mBanner;
     CommandList mCommands;
     OptionList mOptions;
 
@@ -113,8 +115,10 @@ private:
             std::deque<std::string>& parseText,
             ParseResult& parseResult) const;
 
+    std::string optionHelpName(Option const& opt) const;
+
 public:
-    Parser(std::string programName);
+    Parser(std::string programName, std::string banner = "");
 
     Parser& command(std::string name, std::string help, CommandHandler func);
     Parser& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func);
@@ -123,7 +127,8 @@ public:
     const CommandList& commands() const { return mCommands; }
     const OptionList& options() const { return mOptions; }
 
-    std::string help() const;
+    // Creates a string for help, 
+    std::string help(std::size_t minJustified = 0, std::size_t maxJustified = 20) const;
     ParseResult parse(int argc, const char* argv[]) const;
 };
 

@@ -13,8 +13,8 @@ Command::Command(
 {
 }
 
-Parser::Parser(std::string name)
-    : mName(name)
+Parser::Parser(std::string name, std::string banner)
+    : mName(name), mBanner(banner)
 {
 }
 
@@ -52,14 +52,59 @@ Parser::options(
 }
 
 std::string 
-Parser::help() const
+Parser::optionHelpName(Option const& opt) const
+{
+    if(opt.shortName.size() != 0) {
+        return "--" + opt.longName + ", -" + opt.shortName;
+    }
+    else {
+        return "--" + opt.longName;
+    }
+}
+
+std::string 
+Parser::help(std::size_t minJustified, std::size_t maxJustified) const
 {
     std::string help;
-    help = mName + "\n";
+    if(mBanner != "") {
+        help = mBanner + "\n";
+    }
+    else {
+        help = mName + "\n";
+    }
     
+    // First find the max length of option/command pieces
+    std::size_t maxOptComLength = 0;
+    for(auto opt : mOptions.values()) {
+        maxOptComLength = std::max(maxOptComLength, optionHelpName(opt).size());
+    }
+
+    for(auto com : mCommands) {
+        maxOptComLength = std::max(maxOptComLength, com->name.size());
+        for(auto opt : com->options.values()) {
+            // + 2 for the indent on top of normal indentation.
+            maxOptComLength = std::max(maxOptComLength, optionHelpName(opt).size() + 2);
+        }
+    }
+
+    maxOptComLength = std::max(maxOptComLength, maxJustified);
+
+    // Now build up the help string.
     help += "\nGlobal Options:\n";
     for(auto opt : mOptions.values()) {
-        help += "    --" + opt.longName + ", -" + opt.shortName + ": " + opt.description + "\n";
+        auto optName = optionHelpName(opt);
+
+        help += "    " + optName;
+
+        // Justify the description.
+        if(optName.size() < maxOptComLength) {
+            help += std::string(maxOptComLength - optName.size(), ' '); 
+        }
+
+        if(opt.description != "") {
+            help += " - " + opt.description;
+        }
+        help += "\n";
     }
 
     if( mCommands.size() > 0 )
@@ -67,10 +112,32 @@ Parser::help() const
         help += "\nCommands:\n";
 
         for(auto com : mCommands) {
-            help += "    " + com->name + ": " + com->help + "\n";
+            help += "    " + com->name;
+            
+            // Justify the description.
+            if(com->name.size() < maxOptComLength) {
+                help += std::string(maxOptComLength - com->name.size(), ' '); 
+            }
+            if(com->help != "") {
+                help += " - " + com->help;
+            }
+
+            help += "\n";
 
             for(auto opt : com->options.values()) {
-                help += "      --" + opt.longName + ", -" + opt.shortName + ": " + opt.description + "\n";
+                auto optName = optionHelpName(opt);
+
+                help += "      " + optName;
+
+                // Justify the description.
+                if((optName.size()+2) < maxOptComLength) {
+                    help += std::string(maxOptComLength - optName.size() - 2, ' '); 
+                }
+
+                if(opt.description != "") {
+                    help += " - " + opt.description;
+                }
+                help += "\n";
             }
             help += "\n";
         }
