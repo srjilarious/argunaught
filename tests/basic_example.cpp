@@ -8,10 +8,10 @@ int main(int argc, const char* argv[])
     auto args = argunaught::Parser("Cool Test App", "-=# Amazing app Version 1.0 #=-")
         .options({
             {"gamma", "g", "A global option", 1},
-            {"delta", "d", "Another global option", 0}
+            {"delta", "d", "Another global option\nAnd the description\nspans many\nlines....", 0}
         })
         .command(
-            "version", "Gets the version.", [] (auto& parseResult) -> int 
+            "version", "Gets the version.\nUseful for knowing the version of the app.", [] (auto& parseResult) -> int 
             { 
                 printf("Version: 1\n"); 
                 return 0;

@@ -63,6 +63,21 @@ Parser::optionHelpName(Option const& opt) const
 }
 
 std::string 
+Parser::replaceAll(std::string const& orig, char c, std::string const& replace) const
+{
+    std::string newStr;
+    for(char ch : orig) {
+        if(ch == c) {
+            newStr += replace;
+        }
+        else {
+            newStr += ch;
+        }
+    }
+    return newStr;
+}
+
+std::string 
 Parser::help(std::size_t minJustified, std::size_t maxJustified) const
 {
     std::string help;
@@ -102,7 +117,10 @@ Parser::help(std::size_t minJustified, std::size_t maxJustified) const
         }
 
         if(opt.description != "") {
-            help += " - " + opt.description;
+            auto indentLength = maxOptComLength + 4 + 3;
+            auto indent = "\n" + std::string(indentLength, ' ');
+            auto optDesc = replaceAll(opt.description, '\n', indent);
+            help += " - " + optDesc;
         }
         help += "\n";
     }
@@ -119,7 +137,11 @@ Parser::help(std::size_t minJustified, std::size_t maxJustified) const
                 help += std::string(maxOptComLength - com->name.size(), ' '); 
             }
             if(com->help != "") {
-                help += " - " + com->help;
+                // Replace new lines in help with justified new lines
+                auto indentLength = maxOptComLength + 4 + 3;
+                auto indent = "\n" + std::string(indentLength, ' ');
+                auto comHelp = replaceAll(com->help, '\n', indent);
+                help += " - " + comHelp;
             }
 
             help += "\n";
@@ -135,14 +157,17 @@ Parser::help(std::size_t minJustified, std::size_t maxJustified) const
                 }
 
                 if(opt.description != "") {
-                    help += " - " + opt.description;
+                    auto indentLength = maxOptComLength + 6 + 3;
+                    auto indent = "\n" + std::string(indentLength, ' ');
+                    auto optDesc = replaceAll(opt.description, '\n', indent);
+                    help += " - " + optDesc;
                 }
                 help += "\n";
             }
-            help += "\n";
         }
     }
 
+    help += "\n";
     return help;
 }
 

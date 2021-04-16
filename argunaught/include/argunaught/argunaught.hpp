@@ -116,6 +116,7 @@ private:
             ParseResult& parseResult) const;
 
     std::string optionHelpName(Option const& opt) const;
+    std::string replaceAll(std::string const& orig, char c, std::string const& replace) const;
 
 public:
     Parser(std::string programName, std::string banner = "");
