@@ -56,7 +56,13 @@ public:
 using OptionResultList = std::vector<OptionResult>;
 struct Command;
 
-struct Error {
+enum class ParseErrorType
+{
+    UnknownOption,
+};
+
+struct ParseError {
+    ParseErrorType type;
     int pos;
     std::string value;
 };
@@ -72,7 +78,7 @@ public:
     // Command selected, if any.
     std::shared_ptr<Command> command;
 
-    std::vector<Error> errors;
+    std::vector<ParseError> errors;
     bool hasError() const { return errors.size() > 0; }
 
     // Returns whether a command was found.

@@ -1,6 +1,5 @@
 from conans import ConanFile, CMake
 
-
 class ArgunaughtConan(ConanFile):
     name = "argunaught"
     version = "0.5"

@@ -327,7 +327,7 @@ Parser::parseOption(std::shared_ptr<Command> command,
         ARGUNAUGHT_TRACE("Done checking for option values. %d found\n", paramCounter);
         return std::optional<OptionResult>(optResult);
     } else {
-        parseResult.errors.push_back({-1, optionName});
+        parseResult.errors.push_back({ParseErrorType::UnknownOption, -1, optionName});
     }
 
     return std::nullopt;
