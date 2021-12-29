@@ -7,9 +7,10 @@ Command::Command(
         std::string n, 
         std::string h, 
         std::vector<Option> opt, 
-        CommandHandler f
+        CommandHandler f, 
+        bool _handlesSubCommands
     )
-    : name(n), help(h), options(opt), handler(f)
+    : name(n), help(h), options(opt), handler(f), handlesSubCommands(_handlesSubCommands)
 {
 }
 
@@ -22,9 +23,10 @@ Parser&
 Parser::command(
         std::string name, 
         std::string help, 
-        CommandHandler func)
+        CommandHandler func,
+        bool handlesSubCommands)
 {
-    mCommands.push_back(std::shared_ptr<Command>(new Command(name, help, {}, func)));
+    mCommands.push_back(std::shared_ptr<Command>(new Command(name, help, {}, func, handlesSubCommands)));
     return *this;    
 }
 
@@ -33,10 +35,11 @@ Parser::command(
         std::string name, 
         std::string help, 
         std::vector<Option> options, 
-        CommandHandler func
+        CommandHandler func,
+        bool handlesSubCommands
     )
 {
-    mCommands.push_back(std::make_shared<Command>(name, help, options, func));
+    mCommands.push_back(std::make_shared<Command>(name, help, options, func, handlesSubCommands));
     return *this;
 }
 
@@ -49,6 +52,14 @@ Parser::options(
         mOptions.addOption(opt);
     }
     return *this;
+}
+
+Parser& 
+Parser::options(
+        OptionList opts
+    )
+{
+    return options(opts.values());
 }
 
 std::string 
@@ -179,10 +190,24 @@ OptionList::OptionList(std::vector<Option> opts)
     }
 }
 
+OptionList::OptionList(const OptionList& opts)
+    : OptionList(opts.mOptions)
+{
+}
+
 OptionError 
 OptionList::addOption(Option opt)
 {
+    // FIX: Currently no duplicate checks.
     mOptions.push_back(opt);
+    return OptionError::None;
+}
+
+OptionError 
+OptionList::addOptions(const OptionList& opts)
+{
+    // FIX: Currently no duplicate checks.
+    mOptions.insert(mOptions.end(), opts.mOptions.begin(), opts.mOptions.end());
     return OptionError::None;
 }
 
@@ -334,7 +359,7 @@ Parser::parseOption(std::shared_ptr<Command> command,
 }
 
 ParseResult
-Parser::parse(int argc, const char* argv[]) const
+Parser::parse(int argc, const char* argv[], OptionResultList existingOptions) const
 {
     ParseResult result;
 
@@ -371,6 +396,14 @@ Parser::parse(int argc, const char* argv[]) const
             result.command = com;
 
             args.pop_front();
+
+            if(com->handlesSubCommands) {
+                result.subCommandInfo.remainingArgs = args;
+                result.subCommandInfo.prevOptions.addOptions(mOptions);
+                result.subCommandInfo.prevOptions.addOptions(com->options);
+                return result;
+            }
+
             while(!args.empty() && args.front()[0] == '-') {
                 auto optResult = parseOption(com, args, result);
                 if(optResult.has_value()) {

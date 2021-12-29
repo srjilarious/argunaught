@@ -46,7 +46,9 @@ public:
     OptionList() {}
 
     OptionList(std::vector<Option> opts);
+    OptionList(const OptionList& opts);
     OptionError addOption(Option opt);
+    OptionError addOptions(const OptionList& opts);
     std::optional<Option> findShortOption(std::string optionName) const;
     std::optional<Option> findLongOption(std::string optionName) const;
 
@@ -79,6 +81,20 @@ public:
     std::shared_ptr<Command> command;
 
     std::vector<ParseError> errors;
+
+    // Used with commands that are marked as handling sub commands.
+    // This allows the rest of the arguments to be parsed with a 
+    // sub parser.
+    struct SubCommandInfo
+    {
+        std::deque<std::string> remainingArgs;
+
+        // List of previous Parser global and selected command options.
+        // This allows sub commands to inherit options from a previous
+        // parser while adding new options in their sub parser.
+        OptionList prevOptions;
+    } subCommandInfo;
+
     bool hasError() const { return errors.size() > 0; }
 
     // Returns whether a command was found.
@@ -99,10 +115,11 @@ using CommandHandler = std::function<int (const ParseResult&)>;
 
 struct Command
 {
-    Command(std::string n, std::string h, std::vector<Option> opt, CommandHandler f);
+    Command(std::string n, std::string h, std::vector<Option> opt, CommandHandler f, bool _handlesSubCommands);
     std::string name, help;
     CommandHandler handler;
     OptionList options;
+    bool handlesSubCommands;
 };
 
 using CommandPtr = std::shared_ptr<Command>;
@@ -127,16 +144,17 @@ private:
 public:
     Parser(std::string programName, std::string banner = "");
 
-    Parser& command(std::string name, std::string help, CommandHandler func);
-    Parser& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func);
+    Parser& command(std::string name, std::string help, CommandHandler func, bool handlesSubCommands = false);
+    Parser& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func, bool handlesSubCommands = false);
     Parser& options(std::vector<Option> options);
+    Parser& options(OptionList options);
 
     const CommandList& commands() const { return mCommands; }
     const OptionList& options() const { return mOptions; }
 
     // Creates a string for help, 
     std::string help(std::size_t minJustified = 0, std::size_t maxJustified = 20) const;
-    ParseResult parse(int argc, const char* argv[]) const;
+    ParseResult parse(int argc, const char* argv[], OptionResultList existingOptions = {}) const;
 };
 
 }
