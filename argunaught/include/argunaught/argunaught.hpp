@@ -181,6 +181,7 @@ public:
     // Creates a string for help, 
     std::string help(std::size_t minJustified = 0, std::size_t maxJustified = 20) const;
     ParseResult parse(int argc, const char* argv[], OptionResultList existingOptions = {}) const;
+    // ParseResult parse(std::vector<std::string> commandLine, OptionResultList existingOptions = {}) const;
 
     // TODO: Implement call for doing a sub-parse
     //ParseResult subParse(ParseResult const& prevParseResult, OptionResultList existingOptions = {}) const;

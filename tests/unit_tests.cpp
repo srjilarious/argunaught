@@ -94,7 +94,7 @@ TEST_CASE( "Test positional args", "[options]" ) {
 }
 
 
-TEST_CASE( "Test sub-command parsers", "[sub-commands]" ) {
+/*TEST_CASE( "Test sub-command parsers", "[sub-commands]" ) {
     int counter = 0;
     auto argu = argunaught::Parser("Cool Test App")
         .options(
@@ -143,12 +143,15 @@ TEST_CASE( "Test sub-command parsers", "[sub-commands]" ) {
         parseResult.runCommand();
         REQUIRE(counter == 100);
     }
-}
+}*/
 
 
 TEST_CASE( "Test grouped commands", "[groups]" ) {
     int counter = 0;
     auto argu = argunaught::Parser("Cool Grouped commands")
+        .options({
+                {"delta", "d", "Another global option", 0}
+            })
         .group("Fancy")
             .command("sub", "Unit test sub-command", 
             [&counter] (auto& parseResult) -> int 
@@ -168,12 +171,13 @@ TEST_CASE( "Test grouped commands", "[groups]" ) {
     }
 
     SECTION( "Single option with param should work") {
-        const char* args[] = {"test", "--gamma", "one"};
+        const char* args[] = {"test", "--delta", "sub"};
         auto parseResult = argu.parse(3, args);
         REQUIRE(!parseResult.hasError());
         REQUIRE(parseResult.options.size() == 1);
-        REQUIRE(parseResult.options[0].optionName == "gamma");
-        REQUIRE(parseResult.options[0].values.size() == 1);
-        REQUIRE(parseResult.options[0].values[0] == "one");
+        REQUIRE(parseResult.options[0].optionName == "delta");
+        REQUIRE(parseResult.options[0].values.size() == 0);
+        REQUIRE(parseResult.hasCommand());
+        REQUIRE(parseResult.command->name == "sub");
     }
 }

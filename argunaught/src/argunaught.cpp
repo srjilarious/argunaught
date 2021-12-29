@@ -431,7 +431,19 @@ Parser::parse(int argc, const char* argv[], OptionResultList existingOptions) co
     // Check for just options, no command.
     if(args.size() == 0) return result;
 
-    for(const auto& com : mCommands) {
+    // Create a combined list of un-grouped commands and grouped commands
+    CommandList allCommands;
+    std::copy(mCommands.begin(), mCommands.end(), std::back_inserter(allCommands));
+    for(const auto& group : mGroups) {
+        std::copy(
+            group.commands.begin(), 
+            group.commands.end(), 
+            std::back_inserter(allCommands)
+        );
+
+    }
+
+    for(const auto& com : allCommands) {
         if(com->name == args[0]) {
             ARGUNAUGHT_TRACE("Found command '%s'\n", com->name.c_str());
             result.command = com;
