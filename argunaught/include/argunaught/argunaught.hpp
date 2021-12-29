@@ -125,6 +125,27 @@ struct Command
 using CommandPtr = std::shared_ptr<Command>;
 using CommandList = std::vector<CommandPtr>;
 
+class Parser;
+
+class CommandGroup
+{
+private:
+    Parser* mParent;
+
+public:
+    CommandGroup() = default;
+    CommandGroup(Parser* parent) : mParent(parent) {}
+    CommandGroup(Parser* parent, std::string _name, std::string _desc = "");  
+    std::string name;
+    std::string description;
+    CommandList commands;
+
+    CommandGroup& command(std::string name, std::string help, CommandHandler func, bool handlesSubCommands = false);
+    CommandGroup& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func, bool handlesSubCommands = false);
+
+    Parser& endGroup() { return *mParent; }
+};
+
 class Parser
 {
 private:
@@ -132,6 +153,9 @@ private:
     std::string mBanner;
     CommandList mCommands;
     OptionList mOptions;
+
+    // Any grouped commands (which also will be added to commands)
+    std::vector<CommandGroup> mGroups;
 
     std::optional<OptionResult> parseOption(
             std::shared_ptr<Command> command, 
@@ -152,9 +176,14 @@ public:
     const CommandList& commands() const { return mCommands; }
     const OptionList& options() const { return mOptions; }
 
+    CommandGroup& group(std::string name);
+
     // Creates a string for help, 
     std::string help(std::size_t minJustified = 0, std::size_t maxJustified = 20) const;
     ParseResult parse(int argc, const char* argv[], OptionResultList existingOptions = {}) const;
+
+    // TODO: Implement call for doing a sub-parse
+    //ParseResult subParse(ParseResult const& prevParseResult, OptionResultList existingOptions = {}) const;
 };
 
 }

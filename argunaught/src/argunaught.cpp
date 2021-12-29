@@ -358,6 +358,47 @@ Parser::parseOption(std::shared_ptr<Command> command,
     return std::nullopt;
 }
 
+CommandGroup::CommandGroup(
+        Parser* parent, 
+        std::string _name, 
+        std::string _desc
+    ) : mParent(parent),
+        name(_name),
+        description(_desc)
+{
+}
+
+CommandGroup& 
+Parser::group(std::string name)
+{
+    mGroups.push_back(CommandGroup(this, name));
+    return *(mGroups.end()-1);
+}
+
+CommandGroup& 
+CommandGroup::command(
+        std::string name, 
+        std::string help, 
+        CommandHandler func,
+        bool handlesSubCommands)
+{
+    commands.push_back(std::shared_ptr<Command>(new Command(name, help, {}, func, handlesSubCommands)));
+    return *this;    
+}
+
+CommandGroup& 
+CommandGroup::command(
+        std::string name, 
+        std::string help, 
+        std::vector<Option> options, 
+        CommandHandler func,
+        bool handlesSubCommands
+    )
+{
+    commands.push_back(std::make_shared<Command>(name, help, options, func, handlesSubCommands));
+    return *this;
+}
+
 ParseResult
 Parser::parse(int argc, const char* argv[], OptionResultList existingOptions) const
 {
