@@ -29,7 +29,18 @@ int main(int argc, const char* argv[])
                 /*argunaught::opt("h", "help")*/ 
                 return 0;
             } 
-        );
+        ).group("Transformative")
+            .command("transmogrify", "Changes matter's state",
+                [] (auto& parseResult) -> int 
+                { 
+                    return 0;
+                })
+            .command("evocate", "Magical stuff!",
+                [] (auto& parseResult) -> int 
+                { 
+                    return 0;
+                })
+        .endGroup();
 
     printf("%s", args.help(10, 20).c_str());
     

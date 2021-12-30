@@ -88,6 +88,50 @@ Parser::replaceAll(std::string const& orig, char c, std::string const& replace) 
     return newStr;
 }
 
+std::string
+Parser::generateCommandHelp(
+        CommandPtr com, 
+        int maxOptComLength
+    ) const
+{
+    std::string help = "    " + com->name;
+            
+    // Justify the description.
+    if(com->name.size() < maxOptComLength) {
+        help += std::string(maxOptComLength - com->name.size(), ' '); 
+    }
+    if(com->help != "") {
+        // Replace new lines in help with justified new lines
+        auto indentLength = maxOptComLength + 4 + 3;
+        auto indent = "\n" + std::string(indentLength, ' ');
+        auto comHelp = replaceAll(com->help, '\n', indent);
+        help += " - " + comHelp;
+    }
+
+    help += "\n";
+
+    for(auto opt : com->options.values()) {
+        auto optName = optionHelpName(opt);
+
+        help += "      " + optName;
+
+        // Justify the description.
+        if((optName.size()+2) < maxOptComLength) {
+            help += std::string(maxOptComLength - optName.size() - 2, ' '); 
+        }
+
+        if(opt.description != "") {
+            auto indentLength = maxOptComLength + 6 + 3;
+            auto indent = "\n" + std::string(indentLength, ' ');
+            auto optDesc = replaceAll(opt.description, '\n', indent);
+            help += " - " + optDesc;
+        }
+        help += "\n";
+    }
+
+    return help;
+}
+
 std::string 
 Parser::help(std::size_t minJustified, std::size_t maxJustified) const
 {
@@ -110,6 +154,17 @@ Parser::help(std::size_t minJustified, std::size_t maxJustified) const
         for(auto opt : com->options.values()) {
             // + 2 for the indent on top of normal indentation.
             maxOptComLength = std::max(maxOptComLength, optionHelpName(opt).size() + 2);
+        }
+    }
+
+    // Check across grouped commands as well.
+    for(const auto& group : mGroups) {
+        for(auto com : group.commands) {
+            maxOptComLength = std::max(maxOptComLength, com->name.size());
+            for(auto opt : com->options.values()) {
+                // + 2 for the indent on top of normal indentation.
+                maxOptComLength = std::max(maxOptComLength, optionHelpName(opt).size() + 2);
+            }
         }
     }
 
@@ -139,41 +194,21 @@ Parser::help(std::size_t minJustified, std::size_t maxJustified) const
     if( mCommands.size() > 0 )
     {
         help += "\nCommands:\n";
-
         for(auto com : mCommands) {
-            help += "    " + com->name;
-            
-            // Justify the description.
-            if(com->name.size() < maxOptComLength) {
-                help += std::string(maxOptComLength - com->name.size(), ' '); 
-            }
-            if(com->help != "") {
-                // Replace new lines in help with justified new lines
-                auto indentLength = maxOptComLength + 4 + 3;
-                auto indent = "\n" + std::string(indentLength, ' ');
-                auto comHelp = replaceAll(com->help, '\n', indent);
-                help += " - " + comHelp;
+            help += generateCommandHelp(com, maxOptComLength);
+        }
+    }
+
+    if(mGroups.size() > 0) {
+        for(const auto& group : mGroups) 
+        {
+            help += "\n" + group.name + ":\n";
+            if(group.description != "") {
+                help += "  " + group.description + "\n\n";
             }
 
-            help += "\n";
-
-            for(auto opt : com->options.values()) {
-                auto optName = optionHelpName(opt);
-
-                help += "      " + optName;
-
-                // Justify the description.
-                if((optName.size()+2) < maxOptComLength) {
-                    help += std::string(maxOptComLength - optName.size() - 2, ' '); 
-                }
-
-                if(opt.description != "") {
-                    auto indentLength = maxOptComLength + 6 + 3;
-                    auto indent = "\n" + std::string(indentLength, ' ');
-                    auto optDesc = replaceAll(opt.description, '\n', indent);
-                    help += " - " + optDesc;
-                }
-                help += "\n";
+            for(auto com : group.commands) {
+                help += generateCommandHelp(com, maxOptComLength);
             }
         }
     }
@@ -440,7 +475,6 @@ Parser::parse(int argc, const char* argv[], OptionResultList existingOptions) co
             group.commands.end(), 
             std::back_inserter(allCommands)
         );
-
     }
 
     for(const auto& com : allCommands) {
