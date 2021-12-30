@@ -36,6 +36,10 @@ int main(int argc, const char* argv[])
                     return 0;
                 })
             .command("evocate", "Magical stuff!",
+                {
+                    {"fire", "f", "fiery option", 0},
+                    {"ice", "i", "cold option", 0}
+                },
                 [] (auto& parseResult) -> int 
                 { 
                     return 0;
