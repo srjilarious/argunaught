@@ -146,8 +146,74 @@ public:
     Parser& endGroup() { return *mParent; }
 };
 
+
+class HelpFormatter 
+{
+protected:
+    std::size_t findMaxOptComLength(Parser& parser);
+
+    virtual std::string optionHelpName(Option const& opt) const;
+    virtual std::string generateCommandHelp(CommandPtr com, int maxOptComLength) const;
+
+public:
+
+    virtual void programName(std::string name) = 0;
+
+    virtual void beginGroup(std::string value) = 0;
+    virtual void endGroup() = 0;
+
+    virtual void startKey(std::string key) = 0;
+    virtual void endKey() = 0;
+
+    virtual void seperator() = 0;
+
+    virtual void startValue(std::string value) = 0;
+    virtual void endValue() = 0;
+
+    virtual std::string helpString() = 0;;
+};
+
+class DefaultHelpFormatter : public HelpFormatter
+{
+private:
+    int initialIndentLevel = 4;
+    std::string initialIndent = std::string(initialIndentLevel, ' ');
+
+    int spacesPerIndentLevel = 2;
+    int minJustified = 10;
+    int maxJustified = 20;
+    std::string keyValSep = " - ";
+    int keValSepLength = 3;
+
+    std::size_t mMaxOptComLength = 0;
+
+    std::string mHelpString;
+
+    Parser& mParser;
+public:
+    DefaultHelpFormatter(Parser& parser);
+
+    void programName(std::string name) override;
+
+    void beginGroup(std::string value) override;
+    void endGroup() override;
+
+    void startKey(std::string key) override;
+    void endKey() override;
+
+    void seperator() override;
+
+    void startValue(std::string value) override;
+    void endValue() override;
+
+    std::string helpString() override;
+};
+
 class Parser
 {
+    friend class HelpFormatter;
+    friend class DefaultHelpFormatter;
+
 private:
     std::string mName;
     std::string mBanner;
@@ -162,10 +228,6 @@ private:
             std::deque<std::string>& parseText,
             ParseResult& parseResult) const;
 
-    std::string optionHelpName(Option const& opt) const;
-    std::string generateCommandHelp(CommandPtr com, int maxOptComLength) const;
-    std::string replaceAll(std::string const& orig, char c, std::string const& replace) const;
-
 public:
     Parser(std::string programName, std::string banner = "");
 
@@ -179,8 +241,6 @@ public:
 
     CommandGroup& group(std::string name);
 
-    // Creates a string for help, 
-    std::string help(std::size_t minJustified = 0, std::size_t maxJustified = 20) const;
     ParseResult parse(int argc, const char* argv[], OptionResultList existingOptions = {}) const;
     // ParseResult parse(std::vector<std::string> commandLine, OptionResultList existingOptions = {}) const;
 

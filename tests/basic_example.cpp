@@ -46,7 +46,9 @@ int main(int argc, const char* argv[])
                 })
         .endGroup();
 
-    printf("%s", args.help(10, 20).c_str());
+    auto formatter = argunaught::DefaultHelpFormatter(args);
+    auto helpStr = formatter.helpString();
+    printf("%s", helpStr.c_str());
     
     auto parseResult = args.parse(argc, argv);
 

@@ -3,6 +3,26 @@
 namespace argunaught
 {
 
+namespace 
+{
+
+std::string 
+replaceAll(std::string const& orig, char c, std::string const& replace)
+{
+    std::string newStr;
+    for(char ch : orig) {
+        if(ch == c) {
+            newStr += replace;
+        }
+        else {
+            newStr += ch;
+        }
+    }
+    return newStr;
+}
+
+} // End anonymous namespace
+
 Command::Command(
         std::string n, 
         std::string h, 
@@ -63,7 +83,7 @@ Parser::options(
 }
 
 std::string 
-Parser::optionHelpName(Option const& opt) const
+HelpFormatter::optionHelpName(Option const& opt) const
 {
     if(opt.shortName.size() != 0) {
         return "--" + opt.longName + ", -" + opt.shortName;
@@ -73,23 +93,9 @@ Parser::optionHelpName(Option const& opt) const
     }
 }
 
-std::string 
-Parser::replaceAll(std::string const& orig, char c, std::string const& replace) const
-{
-    std::string newStr;
-    for(char ch : orig) {
-        if(ch == c) {
-            newStr += replace;
-        }
-        else {
-            newStr += ch;
-        }
-    }
-    return newStr;
-}
 
 std::string
-Parser::generateCommandHelp(
+HelpFormatter::generateCommandHelp(
         CommandPtr com, 
         int maxOptComLength
     ) const
@@ -132,24 +138,69 @@ Parser::generateCommandHelp(
     return help;
 }
 
-std::string 
-Parser::help(std::size_t minJustified, std::size_t maxJustified) const
+DefaultHelpFormatter::DefaultHelpFormatter(Parser& parser)
+    : mParser(parser)
 {
-    std::string help;
-    if(mBanner != "") {
-        help = mBanner + "\n";
-    }
-    else {
-        help = mName + "\n";
-    }
-    
+    mMaxOptComLength = std::max(findMaxOptComLength(parser), (size_t)maxJustified);
+}
+
+void 
+DefaultHelpFormatter::programName(std::string name)
+{
+    mHelpString += name + "\n";
+}
+
+void 
+DefaultHelpFormatter::beginGroup(std::string value)
+{
+    mHelpString += "\n" + value + ":\n";
+}
+
+void 
+DefaultHelpFormatter::endGroup()
+{
+    mHelpString += "\n";
+}
+
+void 
+DefaultHelpFormatter::startKey(std::string key)
+{
+
+}
+
+void 
+DefaultHelpFormatter::endKey()
+{
+}
+
+void 
+DefaultHelpFormatter::seperator()
+{
+
+}
+
+void 
+DefaultHelpFormatter::startValue(std::string value)
+{
+
+}
+
+void 
+DefaultHelpFormatter::endValue()
+{
+
+}
+
+std::size_t 
+HelpFormatter::findMaxOptComLength(Parser& parser)
+{
     // First find the max length of option/command pieces
     std::size_t maxOptComLength = 0;
-    for(auto opt : mOptions.values()) {
+    for(auto opt : parser.mOptions.values()) {
         maxOptComLength = std::max(maxOptComLength, optionHelpName(opt).size());
     }
 
-    for(auto com : mCommands) {
+    for(auto com : parser.mCommands) {
         maxOptComLength = std::max(maxOptComLength, com->name.size());
         for(auto opt : com->options.values()) {
             // + 2 for the indent on top of normal indentation.
@@ -158,7 +209,7 @@ Parser::help(std::size_t minJustified, std::size_t maxJustified) const
     }
 
     // Check across grouped commands as well.
-    for(const auto& group : mGroups) {
+    for(const auto& group : parser.mGroups) {
         for(auto com : group.commands) {
             maxOptComLength = std::max(maxOptComLength, com->name.size());
             for(auto opt : com->options.values()) {
@@ -168,54 +219,69 @@ Parser::help(std::size_t minJustified, std::size_t maxJustified) const
         }
     }
 
-    maxOptComLength = std::max(maxOptComLength, maxJustified);
+    return maxOptComLength;
+}
+
+std::string 
+DefaultHelpFormatter::helpString()
+{
+    mHelpString = "";
+
+    if(mParser.mBanner != "") {
+        programName(mParser.mBanner);
+    }
+    else {
+        programName(mParser.mName);
+    }
 
     // Now build up the help string.
-    help += "\nGlobal Options:\n";
-    for(auto opt : mOptions.values()) {
+    beginGroup("Global Options");
+    for(auto opt : mParser.mOptions.values()) {
         auto optName = optionHelpName(opt);
 
-        help += "    " + optName;
+        mHelpString += initialIndent + optName;
 
         // Justify the description.
-        if(optName.size() < maxOptComLength) {
-            help += std::string(maxOptComLength - optName.size(), ' '); 
+        if(optName.size() < mMaxOptComLength) {
+            mHelpString += std::string(mMaxOptComLength - optName.size(), ' '); 
         }
 
         if(opt.description != "") {
-            auto indentLength = maxOptComLength + 4 + 3;
+            auto indentLength = mMaxOptComLength + initialIndentLevel + keValSepLength;
             auto indent = "\n" + std::string(indentLength, ' ');
             auto optDesc = replaceAll(opt.description, '\n', indent);
-            help += " - " + optDesc;
+            mHelpString += keyValSep + optDesc;
         }
-        help += "\n";
+        mHelpString += "\n";
     }
 
-    if( mCommands.size() > 0 )
+    if( mParser.mCommands.size() > 0 )
     {
-        help += "\nCommands:\n";
-        for(auto com : mCommands) {
-            help += generateCommandHelp(com, maxOptComLength);
+        beginGroup("Commands");
+
+        for(auto com : mParser.mCommands) {
+            mHelpString += generateCommandHelp(com, mMaxOptComLength);
         }
     }
 
-    if(mGroups.size() > 0) {
-        for(const auto& group : mGroups) 
+    if(mParser.mGroups.size() > 0) {
+        for(const auto& group : mParser.mGroups) 
         {
-            help += "\n" + group.name + ":\n";
+            mHelpString += "\n" + group.name + ":\n";
             if(group.description != "") {
-                help += "  " + group.description + "\n\n";
+                mHelpString += "  " + group.description + "\n\n";
             }
 
             for(auto com : group.commands) {
-                help += generateCommandHelp(com, maxOptComLength);
+                mHelpString += generateCommandHelp(com, mMaxOptComLength);
             }
         }
     }
 
-    help += "\n";
-    return help;
+    mHelpString += "\n";
+    return mHelpString;
 }
+
 
 OptionList::OptionList(std::vector<Option> opts)
 {
