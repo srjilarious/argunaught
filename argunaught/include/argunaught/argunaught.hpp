@@ -206,10 +206,12 @@ public:
 class HelpFormatter 
 {
 protected:
+    std::string mHelpString;
+
     std::size_t findMaxOptComLength(Parser& parser);
 
     virtual std::string optionHelpName(Option const& opt) const;
-    virtual std::string generateCommandHelp(CommandPtr com, int maxOptComLength) const;
+    virtual void generateCommandHelp(CommandPtr com, int maxOptComLength);
 
 public:
 
@@ -243,9 +245,12 @@ private:
 
     std::size_t mMaxOptComLength = 0;
 
-    std::string mHelpString;
 
     Parser& mParser;
+
+    // A flag for whether we should print out ANSI colora
+    bool mIsTTY = true;
+
 public:
     DefaultHelpFormatter(Parser& parser);
 

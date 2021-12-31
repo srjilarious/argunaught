@@ -1,5 +1,7 @@
 #include <argunaught/argunaught.hpp>
 
+#include <unistd.h>
+
 namespace argunaught
 {
 
@@ -94,65 +96,82 @@ HelpFormatter::optionHelpName(Option const& opt) const
 }
 
 
-std::string
+void
 HelpFormatter::generateCommandHelp(
         CommandPtr com, 
         int maxOptComLength
-    ) const
+    )
 {
-    std::string help = "    " + com->name;
+    mHelpString += "    ";
+    startKey(com->name);
+    endKey();
             
     // Justify the description.
     if(com->name.size() < maxOptComLength) {
-        help += std::string(maxOptComLength - com->name.size(), ' '); 
+        mHelpString += std::string(maxOptComLength - com->name.size(), ' '); 
     }
     if(com->help != "") {
         // Replace new lines in help with justified new lines
         auto indentLength = maxOptComLength + 4 + 3;
         auto indent = "\n" + std::string(indentLength, ' ');
         auto comHelp = replaceAll(com->help, '\n', indent);
-        help += " - " + comHelp;
+        //help += " - " + comHelp;
+        seperator();
+        startValue(comHelp);
+        endValue();
     }
 
-    help += "\n";
+    mHelpString += "\n";
 
     for(auto opt : com->options.values()) {
         auto optName = optionHelpName(opt);
 
-        help += "      " + optName;
+        mHelpString += "      ";
+        startKey(optName);
+        endValue();
 
         // Justify the description.
         if((optName.size()+2) < maxOptComLength) {
-            help += std::string(maxOptComLength - optName.size() - 2, ' '); 
+            mHelpString += std::string(maxOptComLength - optName.size() - 2, ' '); 
         }
 
         if(opt.description != "") {
             auto indentLength = maxOptComLength + 6 + 3;
             auto indent = "\n" + std::string(indentLength, ' ');
             auto optDesc = replaceAll(opt.description, '\n', indent);
-            help += " - " + optDesc;
+            //mHelpString += " - " + optDesc;
+            seperator();
+            startValue(optDesc);
+            endValue();
         }
-        help += "\n";
+        mHelpString += "\n";
     }
-
-    return help;
 }
 
 DefaultHelpFormatter::DefaultHelpFormatter(Parser& parser)
     : mParser(parser)
 {
     mMaxOptComLength = std::max(findMaxOptComLength(parser), (size_t)maxJustified);
+    mIsTTY = true;//isatty(fileno(stdout)) == 0;
 }
 
 void 
 DefaultHelpFormatter::programName(std::string name)
 {
+    if(mIsTTY) {
+        mHelpString += color::foreground::BoldGreenColor;
+    }
     mHelpString += name + "\n";
 }
 
 void 
 DefaultHelpFormatter::beginGroup(std::string value)
 {
+
+    if(mIsTTY) {
+        mHelpString += color::foreground::BoldBlueColor;
+    }
+    
     mHelpString += "\n" + value + ":\n";
 }
 
@@ -165,7 +184,11 @@ DefaultHelpFormatter::endGroup()
 void 
 DefaultHelpFormatter::startKey(std::string key)
 {
-
+    if(mIsTTY) {
+        mHelpString += color::foreground::BoldYellowColor;
+    }
+    
+    mHelpString += key;
 }
 
 void 
@@ -176,12 +199,21 @@ DefaultHelpFormatter::endKey()
 void 
 DefaultHelpFormatter::seperator()
 {
-
+    if(mIsTTY) {
+        mHelpString += color::foreground::GrayColor;
+    }
+    
+    mHelpString += keyValSep;
 }
 
 void 
 DefaultHelpFormatter::startValue(std::string value)
 {
+    if(mIsTTY) {
+        mHelpString += color::foreground::WhiteColor;
+    }
+    
+    mHelpString += value;
 
 }
 
@@ -239,7 +271,9 @@ DefaultHelpFormatter::helpString()
     for(auto opt : mParser.mOptions.values()) {
         auto optName = optionHelpName(opt);
 
-        mHelpString += initialIndent + optName;
+        mHelpString += initialIndent;
+        startKey(optName);
+        endKey();
 
         // Justify the description.
         if(optName.size() < mMaxOptComLength) {
@@ -250,7 +284,10 @@ DefaultHelpFormatter::helpString()
             auto indentLength = mMaxOptComLength + initialIndentLevel + keValSepLength;
             auto indent = "\n" + std::string(indentLength, ' ');
             auto optDesc = replaceAll(opt.description, '\n', indent);
-            mHelpString += keyValSep + optDesc;
+            //mHelpString += keyValSep + optDesc;
+            seperator();
+            startValue(optDesc);
+            endValue();
         }
         mHelpString += "\n";
     }
@@ -260,20 +297,20 @@ DefaultHelpFormatter::helpString()
         beginGroup("Commands");
 
         for(auto com : mParser.mCommands) {
-            mHelpString += generateCommandHelp(com, mMaxOptComLength);
+            generateCommandHelp(com, mMaxOptComLength);
         }
     }
 
     if(mParser.mGroups.size() > 0) {
         for(const auto& group : mParser.mGroups) 
         {
-            mHelpString += "\n" + group.name + ":\n";
+            beginGroup(group.name);
             if(group.description != "") {
                 mHelpString += "  " + group.description + "\n\n";
             }
 
             for(auto com : group.commands) {
-                mHelpString += generateCommandHelp(com, mMaxOptComLength);
+                generateCommandHelp(com, mMaxOptComLength);
             }
         }
     }
