@@ -210,24 +210,26 @@ protected:
 
     std::size_t findMaxOptComLength(Parser& parser);
 
-    virtual std::string optionHelpName(Option const& opt) const;
+    virtual void optionHelpName(Option const& opt);
+    virtual size_t optionHelpNameLength(Option const& opt);
     virtual void generateCommandHelp(CommandPtr com, int maxOptComLength);
-
-public:
 
     virtual void programName(std::string name) = 0;
 
     virtual void beginGroup(std::string value) = 0;
     virtual void endGroup() = 0;
 
-    virtual void startKey(std::string key) = 0;
-    virtual void endKey() = 0;
+    virtual void commandName(std::string key) = 0;
+    virtual void optionName(std::string key) = 0;
+    virtual void optionDash(bool longDash) = 0;
+    virtual void optionSeperator() = 0;
 
     virtual void seperator() = 0;
 
-    virtual void startValue(std::string value) = 0;
-    virtual void endValue() = 0;
+    virtual void commandDescription(std::string value) = 0;
+    virtual void optionDescription(std::string value) = 0;
 
+public:
     virtual std::string helpString() = 0;;
 };
 
@@ -259,13 +261,15 @@ public:
     void beginGroup(std::string value) override;
     void endGroup() override;
 
-    void startKey(std::string key) override;
-    void endKey() override;
+    void commandName(std::string key) override;
+    void optionName(std::string key) override;
+    void optionDash(bool longDash) override;
+    void optionSeperator() override;
 
     void seperator() override;
 
-    void startValue(std::string value) override;
-    void endValue() override;
+    void commandDescription(std::string value) override;
+    void optionDescription(std::string value) override;
 
     std::string helpString() override;
 };

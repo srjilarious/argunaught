@@ -84,15 +84,28 @@ Parser::options(
     return options(opts.values());
 }
 
-std::string 
-HelpFormatter::optionHelpName(Option const& opt) const
+void
+HelpFormatter::optionHelpName(Option const& opt)
 {
+    optionDash(true);
+    optionName(opt.longName);
+
     if(opt.shortName.size() != 0) {
-        return "--" + opt.longName + ", -" + opt.shortName;
+        optionSeperator();
+
+        optionDash(false);
+        optionName(opt.shortName);   
     }
-    else {
-        return "--" + opt.longName;
+}
+
+size_t 
+HelpFormatter::optionHelpNameLength(Option const& opt)
+{
+    size_t length = 2 + opt.longName.size();
+    if(opt.shortName.size() != 0) {
+        length += 3 + opt.shortName.size();
     }
+    return length;
 }
 
 
@@ -103,8 +116,7 @@ HelpFormatter::generateCommandHelp(
     )
 {
     mHelpString += "    ";
-    startKey(com->name);
-    endKey();
+    commandName(com->name);
             
     // Justify the description.
     if(com->name.size() < maxOptComLength) {
@@ -117,22 +129,19 @@ HelpFormatter::generateCommandHelp(
         auto comHelp = replaceAll(com->help, '\n', indent);
         //help += " - " + comHelp;
         seperator();
-        startValue(comHelp);
-        endValue();
+        commandDescription(comHelp);
     }
 
     mHelpString += "\n";
 
     for(auto opt : com->options.values()) {
-        auto optName = optionHelpName(opt);
-
         mHelpString += "      ";
-        startKey(optName);
-        endValue();
+        optionHelpName(opt);
+        auto optLen = optionHelpNameLength(opt);
 
         // Justify the description.
-        if((optName.size()+2) < maxOptComLength) {
-            mHelpString += std::string(maxOptComLength - optName.size() - 2, ' '); 
+        if((optLen+2) < maxOptComLength) {
+            mHelpString += std::string(maxOptComLength - optLen - 2, ' '); 
         }
 
         if(opt.description != "") {
@@ -141,8 +150,7 @@ HelpFormatter::generateCommandHelp(
             auto optDesc = replaceAll(opt.description, '\n', indent);
             //mHelpString += " - " + optDesc;
             seperator();
-            startValue(optDesc);
-            endValue();
+            optionDescription(optDesc);
         }
         mHelpString += "\n";
     }
@@ -182,7 +190,7 @@ DefaultHelpFormatter::endGroup()
 }
 
 void 
-DefaultHelpFormatter::startKey(std::string key)
+DefaultHelpFormatter::commandName(std::string key)
 {
     if(mIsTTY) {
         mHelpString += color::foreground::BoldYellowColor;
@@ -192,8 +200,38 @@ DefaultHelpFormatter::startKey(std::string key)
 }
 
 void 
-DefaultHelpFormatter::endKey()
+DefaultHelpFormatter::optionName(std::string key)
 {
+    if(mIsTTY) {
+        mHelpString += color::foreground::BoldCyanColor;
+    }
+    
+    mHelpString += key;
+}
+
+void 
+DefaultHelpFormatter::optionDash(bool longDash)
+{
+    if(mIsTTY) {
+        mHelpString += color::foreground::CyanColor;
+    }
+    
+    if(longDash) {
+        mHelpString += "--";
+    }
+    else {
+        mHelpString += "-";
+    }
+}
+
+void 
+DefaultHelpFormatter::optionSeperator()
+{
+    if(mIsTTY) {
+        mHelpString += color::foreground::CyanColor;
+    }
+    
+    mHelpString += ", ";
 }
 
 void 
@@ -207,7 +245,7 @@ DefaultHelpFormatter::seperator()
 }
 
 void 
-DefaultHelpFormatter::startValue(std::string value)
+DefaultHelpFormatter::commandDescription(std::string value)
 {
     if(mIsTTY) {
         mHelpString += color::foreground::WhiteColor;
@@ -218,8 +256,13 @@ DefaultHelpFormatter::startValue(std::string value)
 }
 
 void 
-DefaultHelpFormatter::endValue()
+DefaultHelpFormatter::optionDescription(std::string value)
 {
+    if(mIsTTY) {
+        mHelpString += color::foreground::WhiteColor;
+    }
+    
+    mHelpString += value;
 
 }
 
@@ -229,14 +272,14 @@ HelpFormatter::findMaxOptComLength(Parser& parser)
     // First find the max length of option/command pieces
     std::size_t maxOptComLength = 0;
     for(auto opt : parser.mOptions.values()) {
-        maxOptComLength = std::max(maxOptComLength, optionHelpName(opt).size());
+        maxOptComLength = std::max(maxOptComLength, optionHelpNameLength(opt));
     }
 
     for(auto com : parser.mCommands) {
         maxOptComLength = std::max(maxOptComLength, com->name.size());
         for(auto opt : com->options.values()) {
             // + 2 for the indent on top of normal indentation.
-            maxOptComLength = std::max(maxOptComLength, optionHelpName(opt).size() + 2);
+            maxOptComLength = std::max(maxOptComLength, optionHelpNameLength(opt) + 2);
         }
     }
 
@@ -246,7 +289,7 @@ HelpFormatter::findMaxOptComLength(Parser& parser)
             maxOptComLength = std::max(maxOptComLength, com->name.size());
             for(auto opt : com->options.values()) {
                 // + 2 for the indent on top of normal indentation.
-                maxOptComLength = std::max(maxOptComLength, optionHelpName(opt).size() + 2);
+                maxOptComLength = std::max(maxOptComLength, optionHelpNameLength(opt)+ 2);
             }
         }
     }
@@ -269,15 +312,13 @@ DefaultHelpFormatter::helpString()
     // Now build up the help string.
     beginGroup("Global Options");
     for(auto opt : mParser.mOptions.values()) {
-        auto optName = optionHelpName(opt);
-
         mHelpString += initialIndent;
-        startKey(optName);
-        endKey();
+        optionHelpName(opt);
+        auto optLen = optionHelpNameLength(opt);
 
         // Justify the description.
-        if(optName.size() < mMaxOptComLength) {
-            mHelpString += std::string(mMaxOptComLength - optName.size(), ' '); 
+        if(optLen < mMaxOptComLength) {
+            mHelpString += std::string(mMaxOptComLength - optLen, ' '); 
         }
 
         if(opt.description != "") {
@@ -286,8 +327,7 @@ DefaultHelpFormatter::helpString()
             auto optDesc = replaceAll(opt.description, '\n', indent);
             //mHelpString += keyValSep + optDesc;
             seperator();
-            startValue(optDesc);
-            endValue();
+            optionDescription(optDesc);
         }
         mHelpString += "\n";
     }
