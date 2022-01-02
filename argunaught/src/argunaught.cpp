@@ -110,12 +110,11 @@ HelpFormatter::optionHelpNameLength(Option const& opt)
 
 
 void
-HelpFormatter::generateCommandHelp(
+DefaultHelpFormatter::generateCommandHelp(
         CommandPtr com, 
         int maxOptComLength
     )
 {
-    mHelpString += "    ";
     commandName(com->name);
             
     // Justify the description.
@@ -135,13 +134,13 @@ HelpFormatter::generateCommandHelp(
     mHelpString += "\n";
 
     for(auto opt : com->options.values()) {
-        mHelpString += "      ";
+        mHelpString += std::string(initialIndentLevel + spacesPerIndentLevel, ' ');
         optionHelpName(opt);
         auto optLen = optionHelpNameLength(opt);
 
         // Justify the description.
-        if((optLen+2) < maxOptComLength) {
-            mHelpString += std::string(maxOptComLength - optLen - 2, ' '); 
+        if((optLen+spacesPerIndentLevel) < maxOptComLength) {
+            mHelpString += std::string(maxOptComLength - optLen - spacesPerIndentLevel, ' '); 
         }
 
         if(opt.description != "") {
@@ -192,6 +191,7 @@ DefaultHelpFormatter::endGroup()
 void 
 DefaultHelpFormatter::commandName(std::string key)
 {
+    mHelpString += std::string(initialIndentLevel, ' ');
     if(mIsTTY) {
         mHelpString += color::foreground::BoldYellowColor;
     }
@@ -346,7 +346,7 @@ DefaultHelpFormatter::helpString()
         {
             beginGroup(group.name);
             if(group.description != "") {
-                mHelpString += "  " + group.description + "\n\n";
+                mHelpString += std::string(spacesPerIndentLevel, ' ') + group.description + "\n\n";
             }
 
             for(auto com : group.commands) {

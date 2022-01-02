@@ -212,7 +212,6 @@ protected:
 
     virtual void optionHelpName(Option const& opt);
     virtual size_t optionHelpNameLength(Option const& opt);
-    virtual void generateCommandHelp(CommandPtr com, int maxOptComLength);
 
     virtual void programName(std::string name) = 0;
 
@@ -253,6 +252,9 @@ private:
     // A flag for whether we should print out ANSI colora
     bool mIsTTY = true;
 
+protected: 
+    virtual void generateCommandHelp(CommandPtr com, int maxOptComLength);
+    
 public:
     DefaultHelpFormatter(Parser& parser);
 
