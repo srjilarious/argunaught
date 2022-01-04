@@ -254,7 +254,7 @@ private:
 
 protected: 
     virtual void generateCommandHelp(CommandPtr com, int maxOptComLength);
-    
+
 public:
     DefaultHelpFormatter(Parser& parser);
 
@@ -309,7 +309,9 @@ public:
     CommandGroup& group(std::string name);
 
     ParseResult parse(int argc, const char* argv[], OptionResultList existingOptions = {}) const;
-    // ParseResult parse(std::vector<std::string> commandLine, OptionResultList existingOptions = {}) const;
+    
+    // Parses the given arguments, assumes the executable name has been skipped.
+    ParseResult parse(std::deque<std::string> args, OptionResultList existingOptions = {}) const;
 
     // TODO: Implement call for doing a sub-parse
     //ParseResult subParse(ParseResult const& prevParseResult, OptionResultList existingOptions = {}) const;

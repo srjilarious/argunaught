@@ -580,18 +580,24 @@ CommandGroup::command(
 ParseResult
 Parser::parse(int argc, const char* argv[], OptionResultList existingOptions) const
 {
-    ParseResult result;
-
     // Skip the executable name
     argv = &argv[1];
     argc--;
 
-    // Create a vector of strings
+    // Create a deque of strings
     std::deque<std::string> args;
     for(size_t ii = 0; ii < argc; ++ii)
     {
         args.emplace_back(argv[ii]);
     }
+
+    return parse(args, existingOptions);
+}
+
+ParseResult
+Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) const
+{
+    ParseResult result;
 
     if(args.size() == 0) return result;
 
