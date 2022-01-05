@@ -94,7 +94,7 @@ TEST_CASE( "Test positional args", "[options]" ) {
 }
 
 
-/*TEST_CASE( "Test sub-command parsers", "[sub-commands]" ) {
+TEST_CASE( "Test sub-command parsers", "[sub-commands]" ) {
     int counter = 0;
     auto argu = argunaught::Parser("Cool Test App")
         .options(
@@ -110,40 +110,53 @@ TEST_CASE( "Test positional args", "[options]" ) {
                 // Build up a new parser for the sub command with separate options,
                 // but inheriting the parent parser options list.
                 // TODO: implement.
-                auto subParser = argunaught::Parser("Cool Test App")
+                auto subParser = argunaught::Parser("Cool Test App - sub")
                     .options(
-                        {{"global", "g", "A global option", 0}}
+                        {{"test", "t", "A sub parser global option", 0}}
                     )
-                    .command("sub", "Unit test sub-command", 
-                        {
-                        },
+                    .command("work", "Unit test sub-command", 
+                        {},
                         [&] (auto& subParseResult) -> int 
                         {
+                            counter = 200;
+                            return 0;
                         });
 
                 // TODO: Fix this..
-                // auto subResult = subParser.parse(parseResult.remaining);
-                // if(subResult.hasCommand()) {
-                //     // ???            
-                // }
-
-                // Return should be?
-                // Better way to allow returning sub result?
-            }, true);
+                auto subResult = subParser.parse(parseResult);
+                subResult.runCommand();
+                return 0;
+            });
 
     SECTION( "Single option with param should work") {
-        const char* args[] = {"test", "sub"};
-        auto parseResult = argu.parse(2, args);
+        std::deque<std::string> args = {"-g"};
+        auto parseResult = argu.parse(args);
         REQUIRE(!parseResult.hasError());
-        REQUIRE(parseResult.options.size() == 0);
+        REQUIRE(parseResult.options.size() == 1);
         REQUIRE(parseResult.positionalArgs.size() == 0);
-        REQUIRE(parseResult.hasCommand());
-        REQUIRE(parseResult.command->name == "sub");
-
-        parseResult.runCommand();
-        REQUIRE(counter == 100);
+        REQUIRE(!parseResult.hasCommand());
+        REQUIRE(counter == 0);
     }
-}*/
+
+    SECTION( "Single option with param should work") {
+        std::deque<std::string> args = {"sub", "-g", "work", "--test"};
+        auto parseResult = argu.parse(args);
+        REQUIRE(!parseResult.hasError());
+        
+        // Only the global option is found at this point
+        REQUIRE(parseResult.options.size() == 1);
+
+        // The remaining sub command arguments are left as positional args.
+        REQUIRE(parseResult.positionalArgs.size() == 2);
+        REQUIRE(parseResult.hasCommand());
+        REQUIRE(counter == 0);
+        
+        // This will run the command which runs its own sub parser.
+        // The work sub command will set the counter variable to 200.
+        parseResult.runCommand();
+        REQUIRE(counter == 200);
+    }
+}
 
 
 TEST_CASE( "Test grouped commands", "[groups]" ) {

@@ -127,6 +127,12 @@ struct ParseError {
 
 class ParseResult
 {
+    friend class Parser;
+
+private:
+    // We keep track of the options from the parser for use in sub parsing.
+    OptionList optionsList;
+
 public:
     // Options found, merged result of global and command options.
     OptionResultList options;
@@ -138,18 +144,18 @@ public:
 
     std::vector<ParseError> errors;
 
-    // Used with commands that are marked as handling sub commands.
-    // This allows the rest of the arguments to be parsed with a 
-    // sub parser.
-    struct SubCommandInfo
-    {
-        std::deque<std::string> remainingArgs;
+    // // Used with commands that are marked as handling sub commands.
+    // // This allows the rest of the arguments to be parsed with a 
+    // // sub parser.
+    // struct SubCommandInfo
+    // {
+    //     std::deque<std::string> remainingArgs;
 
-        // List of previous Parser global and selected command options.
-        // This allows sub commands to inherit options from a previous
-        // parser while adding new options in their sub parser.
-        OptionList prevOptions;
-    } subCommandInfo;
+    //     // List of previous Parser global and selected command options.
+    //     // This allows sub commands to inherit options from a previous
+    //     // parser while adding new options in their sub parser.
+    // } subCommandInfo;
+
 
     bool hasError() const { return errors.size() > 0; }
 
@@ -171,11 +177,11 @@ using CommandHandler = std::function<int (const ParseResult&)>;
 
 struct Command
 {
-    Command(std::string n, std::string h, std::vector<Option> opt, CommandHandler f, bool _handlesSubCommands);
+    Command(std::string n, std::string h, std::vector<Option> opt, CommandHandler f);
     std::string name, help;
     CommandHandler handler;
     OptionList options;
-    bool handlesSubCommands;
+    // bool handlesSubCommands;
 };
 
 using CommandPtr = std::shared_ptr<Command>;
@@ -196,8 +202,8 @@ public:
     std::string description;
     CommandList commands;
 
-    CommandGroup& command(std::string name, std::string help, CommandHandler func, bool handlesSubCommands = false);
-    CommandGroup& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func, bool handlesSubCommands = false);
+    CommandGroup& command(std::string name, std::string help, CommandHandler func);//, bool handlesSubCommands = false);
+    CommandGroup& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func);//, bool handlesSubCommands = false);
 
     Parser& endGroup() { return *mParent; }
 };
@@ -298,8 +304,8 @@ private:
 public:
     Parser(std::string programName, std::string banner = "");
 
-    Parser& command(std::string name, std::string help, CommandHandler func, bool handlesSubCommands = false);
-    Parser& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func, bool handlesSubCommands = false);
+    Parser& command(std::string name, std::string help, CommandHandler func);//, bool handlesSubCommands = false);
+    Parser& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func);//, bool handlesSubCommands = false);
     Parser& options(std::vector<Option> options);
     Parser& options(OptionList options);
 
@@ -308,13 +314,14 @@ public:
 
     CommandGroup& group(std::string name);
 
-    ParseResult parse(int argc, const char* argv[], OptionResultList existingOptions = {}) const;
+    ParseResult parse(int argc, const char* argv[]) const;
     
     // Parses the given arguments, assumes the executable name has been skipped.
-    ParseResult parse(std::deque<std::string> args, OptionResultList existingOptions = {}) const;
+    ParseResult parse(std::deque<std::string> args) const;
 
-    // TODO: Implement call for doing a sub-parse
-    //ParseResult subParse(ParseResult const& prevParseResult, OptionResultList existingOptions = {}) const;
+    // Allows performing sub command parsing using options from previous 
+    // parser call.
+    ParseResult parse(ParseResult const& prevParseResult);
 };
 
 }

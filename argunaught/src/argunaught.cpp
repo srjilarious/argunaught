@@ -29,10 +29,10 @@ Command::Command(
         std::string n, 
         std::string h, 
         std::vector<Option> opt, 
-        CommandHandler f, 
-        bool _handlesSubCommands
+        CommandHandler f//, 
+        // bool _handlesSubCommands
     )
-    : name(n), help(h), options(opt), handler(f), handlesSubCommands(_handlesSubCommands)
+    : name(n), help(h), options(opt), handler(f)//, handlesSubCommands(_handlesSubCommands)
 {
 }
 
@@ -45,10 +45,10 @@ Parser&
 Parser::command(
         std::string name, 
         std::string help, 
-        CommandHandler func,
-        bool handlesSubCommands)
+        CommandHandler func)//,
+        // bool handlesSubCommands)
 {
-    mCommands.push_back(std::shared_ptr<Command>(new Command(name, help, {}, func, handlesSubCommands)));
+    mCommands.push_back(std::shared_ptr<Command>(new Command(name, help, {}, func)));
     return *this;    
 }
 
@@ -57,11 +57,10 @@ Parser::command(
         std::string name, 
         std::string help, 
         std::vector<Option> options, 
-        CommandHandler func,
-        bool handlesSubCommands
+        CommandHandler func
     )
 {
-    mCommands.push_back(std::make_shared<Command>(name, help, options, func, handlesSubCommands));
+    mCommands.push_back(std::make_shared<Command>(name, help, options, func));
     return *this;
 }
 
@@ -557,10 +556,9 @@ CommandGroup&
 CommandGroup::command(
         std::string name, 
         std::string help, 
-        CommandHandler func,
-        bool handlesSubCommands)
+        CommandHandler func)
 {
-    commands.push_back(std::shared_ptr<Command>(new Command(name, help, {}, func, handlesSubCommands)));
+    commands.push_back(std::shared_ptr<Command>(new Command(name, help, {}, func)));
     return *this;    
 }
 
@@ -569,16 +567,15 @@ CommandGroup::command(
         std::string name, 
         std::string help, 
         std::vector<Option> options, 
-        CommandHandler func,
-        bool handlesSubCommands
+        CommandHandler func
     )
 {
-    commands.push_back(std::make_shared<Command>(name, help, options, func, handlesSubCommands));
+    commands.push_back(std::make_shared<Command>(name, help, options, func));
     return *this;
 }
 
 ParseResult
-Parser::parse(int argc, const char* argv[], OptionResultList existingOptions) const
+Parser::parse(int argc, const char* argv[]) const
 {
     // Skip the executable name
     argv = &argv[1];
@@ -591,15 +588,31 @@ Parser::parse(int argc, const char* argv[], OptionResultList existingOptions) co
         args.emplace_back(argv[ii]);
     }
 
-    return parse(args, existingOptions);
+    return parse(args);
 }
 
 ParseResult
-Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) const
+Parser::parse(ParseResult const& prevParseResult)
+{
+    // Create a deque of strings
+    std::deque<std::string> args;
+    for(auto& arg : prevParseResult.positionalArgs)
+    {
+        args.emplace_back(arg);
+    }
+
+    mOptions.addOptions(prevParseResult.optionsList.values());
+    return parse(args);
+}
+
+ParseResult
+Parser::parse(std::deque<std::string> args) const
 {
     ParseResult result;
 
     if(args.size() == 0) return result;
+
+    result.optionsList.addOptions(mOptions);
 
     // parse any options before the command as global options
     while(!args.empty() && args.front()[0] == '-') {
@@ -633,12 +646,13 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
 
             args.pop_front();
 
-            if(com->handlesSubCommands) {
-                result.subCommandInfo.remainingArgs = args;
-                result.subCommandInfo.prevOptions.addOptions(mOptions);
-                result.subCommandInfo.prevOptions.addOptions(com->options);
-                return result;
-            }
+            result.optionsList.addOptions(com->options);
+            // if(com->handlesSubCommands) {
+            //     result.subCommandInfo.remainingArgs = args;
+            //     result.subCommandInfo.prevOptions.addOptions(mOptions);
+            //     result.subCommandInfo.prevOptions.addOptions(com->options);
+            //     return result;
+            // }
 
             while(!args.empty() && args.front()[0] == '-') {
                 auto optResult = parseOption(com, args, result);
@@ -653,7 +667,6 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
                 optResult.value().optionName.c_str(), optResult.value().values.size());
             }
 
-            
             break;
         }
     }
