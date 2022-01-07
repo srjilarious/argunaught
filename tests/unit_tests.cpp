@@ -94,6 +94,59 @@ TEST_CASE( "Test positional args", "[options]" ) {
 }
 
 
+TEST_CASE( "Test sub parsers", "[subparser]" ) {
+    int counter = 0;
+    auto argu = argunaught::Parser("Cool Test App")
+        .options(
+            {{"global", "g", "A global option", 0}}
+        )
+        .command("sub", "Unit test sub-command", 
+            { /* No options */ },
+            [&counter] (auto& parseResult) -> int 
+            { 
+            })
+        .subCommand("fancy", "My fancy sub command",
+            {{"test", "t", "An option for fancy"}},
+            [&counter] (const auto& parser, auto optionResults, auto args) -> argunaught::ParseResult
+            {
+                auto subParser = argunaught::Parser("Cool Test App - sub")
+                    .options(parser.options())
+                    .command("work", "Unit test sub-command", 
+                        {},
+                        [&] (auto& subParseResult) -> int 
+                        {
+                            counter = 200;
+                            return 0;
+                        });
+
+                return subParser.parse(args, optionResults);
+            }
+        );
+    
+    SECTION( "Single option with param should work") {
+        std::deque<std::string> args = {"-g"};
+        auto parseResult = argu.parse(args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 1);
+        REQUIRE(parseResult.positionalArgs.size() == 0);
+        REQUIRE(!parseResult.hasCommand());
+        REQUIRE(counter == 0);
+    }
+    
+    SECTION( "Should be able to call sub parser's command") {
+        std::deque<std::string> args = {"fancy", "work", "-g"};
+        auto parseResult = argu.parse(args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 1);
+        REQUIRE(parseResult.positionalArgs.size() == 0);
+
+        REQUIRE(counter == 0);
+        REQUIRE(parseResult.hasCommand());
+        parseResult.runCommand();
+        REQUIRE(counter == 200);
+    }
+}
+
 TEST_CASE( "Test sub-command parsers", "[sub-commands]" ) {
     int counter = 0;
     auto argu = argunaught::Parser("Cool Test App")
@@ -122,7 +175,6 @@ TEST_CASE( "Test sub-command parsers", "[sub-commands]" ) {
                             return 0;
                         });
 
-                // TODO: Fix this..
                 auto subResult = subParser.parse(parseResult);
                 subResult.runCommand();
                 return 0;

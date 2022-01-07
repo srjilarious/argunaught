@@ -36,6 +36,16 @@ Command::Command(
 {
 }
 
+SubCommand::SubCommand(
+        std::string n, 
+        std::string h, 
+        std::vector<Option> opt, 
+        SubCommandHandler f
+    )
+    : name(n), help(h), options(opt), handler(f)
+{
+}
+
 Parser::Parser(std::string name, std::string banner)
     : mName(name), mBanner(banner)
 {
@@ -77,7 +87,7 @@ Parser::options(
 
 Parser& 
 Parser::options(
-        OptionList opts
+        const OptionList& opts
     )
 {
     return options(opts.values());
@@ -574,6 +584,29 @@ CommandGroup::command(
     return *this;
 }
 
+Parser& 
+Parser::subCommand(
+        std::string name, 
+        std::string help, 
+        SubCommandHandler func)
+{
+    mSubCommands.push_back(std::shared_ptr<SubCommand>(new SubCommand(name, help, {}, func)));
+    return *this; 
+}
+
+Parser& 
+Parser::subCommand(
+        std::string name, 
+        std::string help, 
+        std::vector<Option> options, 
+        SubCommandHandler func
+    )
+{
+    mSubCommands.push_back(std::shared_ptr<SubCommand>(new SubCommand(name, help, options, func)));
+    return *this; 
+}
+
+
 ParseResult
 Parser::parse(int argc, const char* argv[]) const
 {
@@ -606,9 +639,13 @@ Parser::parse(ParseResult const& prevParseResult)
 }
 
 ParseResult
-Parser::parse(std::deque<std::string> args) const
+Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) const
 {
     ParseResult result;
+
+    for(const auto& opt : existingOptions) {
+        result.options.push_back(opt);
+    }
 
     if(args.size() == 0) return result;
 
@@ -647,12 +684,6 @@ Parser::parse(std::deque<std::string> args) const
             args.pop_front();
 
             result.optionsList.addOptions(com->options);
-            // if(com->handlesSubCommands) {
-            //     result.subCommandInfo.remainingArgs = args;
-            //     result.subCommandInfo.prevOptions.addOptions(mOptions);
-            //     result.subCommandInfo.prevOptions.addOptions(com->options);
-            //     return result;
-            // }
 
             while(!args.empty() && args.front()[0] == '-') {
                 auto optResult = parseOption(com, args, result);
@@ -670,8 +701,21 @@ Parser::parse(std::deque<std::string> args) const
             break;
         }
     }
+    
+    for(const auto& subCom : mSubCommands) {
+        if(subCom->name == args[0]) {
+            ARGUNAUGHT_TRACE("Found sub command '%s'\n", com->name.c_str());
+            
+            args.pop_front();
+            result = subCom->handler(*this, result.options, args);
+            
+            return result;
+        }
+    }
 
+    // Fall through in case of no command, sub command, or remaining args for command.
     ARGUNAUGHT_TRACE("Checking positional args, %d left", args.size());
+
     // Anything left over is a positional argument.
     while(!args.empty()) {
         ARGUNAUGHT_TRACE("Got positional arg: '%s'\n", args.front().c_str());
