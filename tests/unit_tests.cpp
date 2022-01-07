@@ -103,9 +103,10 @@ TEST_CASE( "Test sub parsers", "[subparser]" ) {
         .command("sub", "Unit test sub-command", 
             { /* No options */ },
             [&counter] (auto& parseResult) -> int 
-            { 
+            {
+                return 0;
             })
-        .subCommand("fancy", "My fancy sub command",
+        .subParser("fancy", "My fancy sub parser",
             {{"test", "t", "An option for fancy"}},
             [&counter] (const auto& parser, auto optionResults, auto args) -> argunaught::ParseResult
             {

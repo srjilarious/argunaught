@@ -124,7 +124,7 @@ public:
 
 using OptionResultList = std::vector<OptionResult>;
 struct Command;
-struct SubCommand;
+struct SubParser;
 class ParseResult;
 class Parser;
 
@@ -134,12 +134,12 @@ using CommandHandler = std::function<int (const ParseResult&)>;
 // A command that is expected to instantiate a parser in its handler to 
 // parse the remaining positional arguments to allow breaking sets of commands into 
 // sub groups.
-using SubCommandHandler = std::function<ParseResult (const Parser& parent, OptionResultList foundOptions, std::deque<std::string> args)>;
+using SubParserHandler = std::function<ParseResult (const Parser& parent, OptionResultList foundOptions, std::deque<std::string> args)>;
 
 using CommandPtr = std::shared_ptr<Command>;
 using CommandList = std::vector<CommandPtr>;
-using SubCommandPtr = std::shared_ptr<SubCommand>;
-using SubCommandList = std::vector<SubCommandPtr>;
+using SubParserPtr = std::shared_ptr<SubParser>;
+using SubParserList = std::vector<SubParserPtr>;
 
 class ParseResult
 {
@@ -163,14 +163,14 @@ public:
     // // Used with commands that are marked as handling sub commands.
     // // This allows the rest of the arguments to be parsed with a 
     // // sub parser.
-    // struct SubCommandInfo
+    // struct SubParserInfo
     // {
     //     std::deque<std::string> remainingArgs;
 
     //     // List of previous Parser global and selected command options.
     //     // This allows sub commands to inherit options from a previous
     //     // parser while adding new options in their sub parser.
-    // } subCommandInfo;
+    // } SubParserInfo;
 
 
     bool hasError() const { return errors.size() > 0; }
@@ -197,12 +197,12 @@ struct Command
     CommandHandler handler;
 };
 
-struct SubCommand 
+struct SubParser 
 {
-    SubCommand(std::string n, std::string h, std::vector<Option> opt, SubCommandHandler f);
+    SubParser(std::string n, std::string h, std::vector<Option> opt, SubParserHandler f);
     std::string name, help;
     OptionList options;
-    SubCommandHandler handler;
+    SubParserHandler handler;
 };
 
 class CommandGroup
@@ -217,13 +217,13 @@ public:
     std::string name;
     std::string description;
     CommandList commands;
-    //SubCommandList subCommands;
+    //SubParserList SubParsers;
 
     CommandGroup& command(std::string name, std::string help, CommandHandler func);
     CommandGroup& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func);
 
-    // Parser& subCommand(std::string name, std::string help, SubCommandHandler func);
-    // Parser& subCommand(std::string name, std::string help, std::vector<Option> options, SubCommandHandler func);
+    // Parser& SubParser(std::string name, std::string help, SubParserHandler func);
+    // Parser& SubParser(std::string name, std::string help, std::vector<Option> options, SubParserHandler func);
 
     Parser& endGroup() { return *mParent; }
 };
@@ -311,7 +311,7 @@ private:
     std::string mName;
     std::string mBanner;
     CommandList mCommands;
-    SubCommandList mSubCommands;
+    SubParserList mSubParsers;
     OptionList mOptions;
     Parser* mParent = nullptr;
 
@@ -329,8 +329,8 @@ public:
     Parser& command(std::string name, std::string help, CommandHandler func);
     Parser& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func);
     
-    Parser& subCommand(std::string name, std::string help, SubCommandHandler func);
-    Parser& subCommand(std::string name, std::string help, std::vector<Option> options, SubCommandHandler func);
+    Parser& subParser(std::string name, std::string help, SubParserHandler func);
+    Parser& subParser(std::string name, std::string help, std::vector<Option> options, SubParserHandler func);
     
     Parser& options(std::vector<Option> options);
     Parser& options(const OptionList& options);

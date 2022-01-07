@@ -30,17 +30,17 @@ Command::Command(
         std::string h, 
         std::vector<Option> opt, 
         CommandHandler f//, 
-        // bool _handlesSubCommands
+        // bool _handlesSubParsers
     )
-    : name(n), help(h), options(opt), handler(f)//, handlesSubCommands(_handlesSubCommands)
+    : name(n), help(h), options(opt), handler(f)//, handlesSubParsers(_handlesSubParsers)
 {
 }
 
-SubCommand::SubCommand(
+SubParser::SubParser(
         std::string n, 
         std::string h, 
         std::vector<Option> opt, 
-        SubCommandHandler f
+        SubParserHandler f
     )
     : name(n), help(h), options(opt), handler(f)
 {
@@ -56,7 +56,7 @@ Parser::command(
         std::string name, 
         std::string help, 
         CommandHandler func)//,
-        // bool handlesSubCommands)
+        // bool handlesSubParsers)
 {
     mCommands.push_back(std::shared_ptr<Command>(new Command(name, help, {}, func)));
     return *this;    
@@ -585,24 +585,24 @@ CommandGroup::command(
 }
 
 Parser& 
-Parser::subCommand(
+Parser::subParser(
         std::string name, 
         std::string help, 
-        SubCommandHandler func)
+        SubParserHandler func)
 {
-    mSubCommands.push_back(std::shared_ptr<SubCommand>(new SubCommand(name, help, {}, func)));
+    mSubParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, {}, func)));
     return *this; 
 }
 
 Parser& 
-Parser::subCommand(
+Parser::subParser(
         std::string name, 
         std::string help, 
         std::vector<Option> options, 
-        SubCommandHandler func
+        SubParserHandler func
     )
 {
-    mSubCommands.push_back(std::shared_ptr<SubCommand>(new SubCommand(name, help, options, func)));
+    mSubParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, options, func)));
     return *this; 
 }
 
@@ -702,7 +702,7 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
         }
     }
     
-    for(const auto& subCom : mSubCommands) {
+    for(const auto& subCom : mSubParsers) {
         if(subCom->name == args[0]) {
             ARGUNAUGHT_TRACE("Found sub command '%s'\n", com->name.c_str());
             
