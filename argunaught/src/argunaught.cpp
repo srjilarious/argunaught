@@ -584,6 +584,28 @@ CommandGroup::command(
     return *this;
 }
 
+CommandGroup& 
+CommandGroup::subParser(
+        std::string name, 
+        std::string help, 
+        SubParserHandler func)
+{
+    subParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, {}, func)));
+    return *this; 
+}
+
+CommandGroup& 
+CommandGroup::subParser(
+        std::string name, 
+        std::string help, 
+        std::vector<Option> options, 
+        SubParserHandler func
+    )
+{
+    subParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, options, func)));
+    return *this; 
+}
+
 Parser& 
 Parser::subParser(
         std::string name, 
@@ -702,7 +724,18 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
         }
     }
     
-    for(const auto& subCom : mSubParsers) {
+    // Create a combined list of un-grouped commands and grouped commands
+    SubParserList allSubParsers;
+    std::copy(mSubParsers.begin(), mSubParsers.end(), std::back_inserter(allSubParsers));
+    for(const auto& group : mGroups) {
+        std::copy(
+            group.subParsers.begin(), 
+            group.subParsers.end(), 
+            std::back_inserter(allSubParsers)
+        );
+    }
+
+    for(const auto& subCom : allSubParsers) {
         if(subCom->name == args[0]) {
             ARGUNAUGHT_TRACE("Found sub command '%s'\n", com->name.c_str());
             

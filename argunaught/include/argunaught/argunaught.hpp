@@ -160,19 +160,6 @@ public:
 
     std::vector<ParseError> errors;
 
-    // // Used with commands that are marked as handling sub commands.
-    // // This allows the rest of the arguments to be parsed with a 
-    // // sub parser.
-    // struct SubParserInfo
-    // {
-    //     std::deque<std::string> remainingArgs;
-
-    //     // List of previous Parser global and selected command options.
-    //     // This allows sub commands to inherit options from a previous
-    //     // parser while adding new options in their sub parser.
-    // } SubParserInfo;
-
-
     bool hasError() const { return errors.size() > 0; }
 
     // Returns whether a command was found.
@@ -217,13 +204,13 @@ public:
     std::string name;
     std::string description;
     CommandList commands;
-    //SubParserList SubParsers;
+    SubParserList subParsers;
 
     CommandGroup& command(std::string name, std::string help, CommandHandler func);
     CommandGroup& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func);
 
-    // Parser& SubParser(std::string name, std::string help, SubParserHandler func);
-    // Parser& SubParser(std::string name, std::string help, std::vector<Option> options, SubParserHandler func);
+    CommandGroup& subParser(std::string name, std::string help, SubParserHandler func);
+    CommandGroup& subParser(std::string name, std::string help, std::vector<Option> options, SubParserHandler func);
 
     Parser& endGroup() { return *mParent; }
 };
