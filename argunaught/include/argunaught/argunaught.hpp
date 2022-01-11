@@ -267,6 +267,7 @@ private:
 
 protected: 
     virtual void generateCommandHelp(CommandPtr com, int maxOptComLength);
+    virtual void generateSubParserHelp(SubParserPtr com, int maxOptComLength);
 
 public:
     DefaultHelpFormatter(Parser& parser);

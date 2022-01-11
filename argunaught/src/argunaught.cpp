@@ -164,6 +164,52 @@ DefaultHelpFormatter::generateCommandHelp(
     }
 }
 
+void
+DefaultHelpFormatter::generateSubParserHelp(
+        SubParserPtr com, 
+        int maxOptComLength
+    )
+{
+    commandName(com->name);
+            
+    // Justify the description.
+    if(com->name.size() < maxOptComLength) {
+        mHelpString += std::string(maxOptComLength - com->name.size(), ' '); 
+    }
+    if(com->help != "") {
+        // Replace new lines in help with justified new lines
+        auto indentLength = maxOptComLength + 4 + 3;
+        auto indent = "\n" + std::string(indentLength, ' ');
+        auto comHelp = replaceAll(com->help, '\n', indent);
+        //help += " - " + comHelp;
+        seperator();
+        commandDescription(comHelp);
+    }
+
+    mHelpString += "\n";
+
+    for(auto opt : com->options.values()) {
+        mHelpString += std::string(initialIndentLevel + spacesPerIndentLevel, ' ');
+        optionHelpName(opt);
+        auto optLen = optionHelpNameLength(opt);
+
+        // Justify the description.
+        if((optLen+spacesPerIndentLevel) < maxOptComLength) {
+            mHelpString += std::string(maxOptComLength - optLen - spacesPerIndentLevel, ' '); 
+        }
+
+        if(opt.description != "") {
+            auto indentLength = maxOptComLength + 6 + 3;
+            auto indent = "\n" + std::string(indentLength, ' ');
+            auto optDesc = replaceAll(opt.description, '\n', indent);
+            //mHelpString += " - " + optDesc;
+            seperator();
+            optionDescription(optDesc);
+        }
+        mHelpString += "\n";
+    }
+}
+
 DefaultHelpFormatter::DefaultHelpFormatter(Parser& parser)
     : mParser(parser)
 {
@@ -348,6 +394,10 @@ DefaultHelpFormatter::helpString()
         for(auto com : mParser.mCommands) {
             generateCommandHelp(com, mMaxOptComLength);
         }
+        
+        for(auto sub : mParser.mSubParsers) {
+            generateSubParserHelp(sub, mMaxOptComLength);
+        }
     }
 
     if(mParser.mGroups.size() > 0) {
@@ -360,6 +410,10 @@ DefaultHelpFormatter::helpString()
 
             for(auto com : group.commands) {
                 generateCommandHelp(com, mMaxOptComLength);
+            }
+
+            for(auto sub : group.subParsers) {
+                generateSubParserHelp(sub, mMaxOptComLength);
             }
         }
     }

@@ -17,19 +17,31 @@ int main(int argc, const char* argv[])
                 return 0;
             }
         )
-        .command(
-            "sub", "An awesome sub-command.",
+        .subParser("fancy", "My fancy sub parser",
+            {{"test", "t", "An option for fancy"}},
+            [&] (const auto& parser, auto optionResults, auto args) -> argunaught::ParseResult
             {
-                {"test", "t", "A test option.", 0},
-                {"alpha", "a", "cool option", -1},
-                {"beta", "b", "cool other option", 2}
-            },
-            [] (auto& parseResult) -> int 
-            { 
-                /*argunaught::opt("h", "help")*/ 
-                return 0;
-            } 
-        ).group("Transformative")
+                auto subParser = argunaught::Parser("Cool Test App - fancy")
+                    .options(parser.options())
+                    .command("work", "sub parser command!", 
+                        {},
+                        [&] (auto& subParseResult) -> int 
+                        {
+                            printf("Did some work!\n");
+                            return 0;
+                        })
+                    .command("other", "sub parser other command!", 
+                        {},
+                        [&] (auto& subParseResult) -> int 
+                        {
+                            printf("Did some different work!\n");
+                            return 0;
+                        });
+
+                return subParser.parse(args, optionResults);
+            }
+        )
+        .group("Transformative")
             .command("transmogrify", "Changes matter's state",
                 [] (auto& parseResult) -> int 
                 { 
