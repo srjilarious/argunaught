@@ -9,8 +9,14 @@
 #include <memory>
 #include <optional>
 
+#include "forward_decl.hpp"
+#include "formatting.hpp"
+
 namespace argunaught
 {
+
+
+
 
 #ifdef TRACE_OPTIONS
 #define ARGUNAUGHT_TRACE(...) printf(__VA_ARGS__)
@@ -18,79 +24,34 @@ namespace argunaught
 #define ARGUNAUGHT_TRACE(msg, ...) 
 #endif
 
-namespace color
-{
-    constexpr const char ResetColor[]   = "\033[0m";
-
-namespace foreground
-{
-    constexpr const char BlackColor[]     = "\033[30m";
-    constexpr const char RedColor[]     = "\033[31m";
-    constexpr const char GreenColor[]   = "\033[32m";
-    constexpr const char YellowColor[]  = "\033[33m";
-    constexpr const char BlueColor[]    = "\033[34m";
-    constexpr const char MagentaColor[] = "\033[35m";
-    constexpr const char CyanColor[]    = "\033[36m";
-    constexpr const char WhiteColor[]   = "\033[37m";
-
-    constexpr const char GrayColor[]       = "\033[90m";
-    constexpr const char BoldRedColor[]    = "\033[91m";
-    constexpr const char BoldGreenColor[]  = "\033[92m";
-    constexpr const char BoldYellowColor[] = "\033[93m";
-    constexpr const char BoldBlueColor[]   = "\033[94m";
-    constexpr const char BoldMagentaColor[]= "\033[95m";
-    constexpr const char BoldCyanColor[]   = "\033[96m";
-    constexpr const char BoldWhiteColor[]  = "\033[97m";
-
-    // std::string color256(uint8_t which) {
-    //     return std::string("\u001b[38;5;") + std::to_string(which) + "m";
-    // }
-} // foreground
-
-namespace background
-{
-    constexpr const char BlackColor[]     = "\033[40m";
-    constexpr const char RedColor[]     = "\033[41m";
-    constexpr const char GreenColor[]   = "\033[42m";
-    constexpr const char YellowColor[]  = "\033[43m";
-    constexpr const char BlueColor[]    = "\033[44m";
-    constexpr const char MagentaColor[] = "\033[45m";
-    constexpr const char CyanColor[]    = "\033[46m";
-    constexpr const char WhiteColor[]   = "\033[47m";
-
-    constexpr const char GrayColor[]       = "\033[40;1m";
-    constexpr const char BoldRedColor[]    = "\033[41;1m";
-    constexpr const char BoldGreenColor[]  = "\033[42;1m";
-    constexpr const char BoldYellowColor[] = "\033[43;1m";
-    constexpr const char BoldBlueColor[]   = "\033[44;1m";
-    constexpr const char BoldMagentaColor[]= "\033[45;1m";
-    constexpr const char BoldCyanColor[]   = "\033[46;1m";
-    constexpr const char BoldWhiteColor[]  = "\033[47;1m";
-
-    // std::string color256(uint8_t which) {
-    //     return std::string("\u001b[48;5;") + std::to_string(which) + "m";
-    // }
-} // background
-} // color
-
-
+//! An enum of errors checked for during parsing.
 enum class ParseErrorType
 {
     UnknownOption,
 };
 
+//! An enum of errors checked for during option parsing
 enum class OptionError
 {
     None,
     OptionAlreadyExists
 };
 
+//! Information about errors caught while parsing the command line with the
+//! current parser.
 struct ParseError {
     ParseErrorType type;
     int pos;
     std::string value;
 };
 
+//! Command line option descritor
+/*!
+ *  Describes the short and long names for an option.  Contains a description 
+ *  of what the option is used for and declares how many parameters if any the 
+ *  option takes.  Use `-1` to allow infinite params, broken by another option 
+ *  or `--` to start positional parameters.
+ */
 struct Option
 {
     std::string longName, shortName;
@@ -98,12 +59,14 @@ struct Option
     int maxNumParams = 0;
 };
 
+//! An instance of an option found during parsing and any parameters associated.
 struct OptionResult
 {
     std::string optionName;
     std::vector<std::string> values;
 };
 
+//! A collection of options contained in the parser.
 class OptionList
 {
 private:
@@ -122,25 +85,9 @@ public:
     const std::vector<Option>& values() const {return mOptions; }
 };
 
-using OptionResultList = std::vector<OptionResult>;
-struct Command;
-struct SubParser;
-class ParseResult;
-class Parser;
 
-// A standard command that runs like a miniature main
-using CommandHandler = std::function<int (const ParseResult&)>;
-
-// A command that is expected to instantiate a parser in its handler to 
-// parse the remaining positional arguments to allow breaking sets of commands into 
-// sub groups.
-using SubParserHandler = std::function<ParseResult (const Parser& parent, OptionResultList foundOptions, std::deque<std::string> args)>;
-
-using CommandPtr = std::shared_ptr<Command>;
-using CommandList = std::vector<CommandPtr>;
-using SubParserPtr = std::shared_ptr<SubParser>;
-using SubParserList = std::vector<SubParserPtr>;
-
+//! The result of parsing a command line for commands, options and associated 
+//! parameters.
 class ParseResult
 {
     friend class Parser;
@@ -176,6 +123,7 @@ public:
     int runCommand() const;
 };
 
+//! Definition of a sub command that contains its own functor for execution.
 struct Command 
 {
     Command(std::string n, std::string h, std::vector<Option> opt, CommandHandler f);
@@ -184,6 +132,7 @@ struct Command
     CommandHandler handler;
 };
 
+//! A special command that actually creates its own parser with its own commands/options.
 struct SubParser 
 {
     SubParser(std::string n, std::string h, std::vector<Option> opt, SubParserHandler f);
@@ -192,6 +141,7 @@ struct SubParser
     SubParserHandler handler;
 };
 
+//! A way to group commands that are related semantically.
 class CommandGroup
 {
 private:
@@ -215,81 +165,8 @@ public:
     Parser& endGroup() { return *mParent; }
 };
 
-
-class HelpFormatter 
-{
-protected:
-    std::string mHelpString;
-
-    std::size_t findMaxOptComLength(Parser& parser);
-
-    virtual void optionHelpName(Option const& opt);
-    virtual size_t optionHelpNameLength(Option const& opt);
-
-    virtual void programName(std::string name) = 0;
-
-    virtual void beginGroup(std::string value) = 0;
-    virtual void endGroup() = 0;
-
-    virtual void commandName(std::string key) = 0;
-    virtual void optionName(std::string key) = 0;
-    virtual void optionDash(bool longDash) = 0;
-    virtual void optionSeperator() = 0;
-
-    virtual void seperator() = 0;
-
-    virtual void commandDescription(std::string value) = 0;
-    virtual void optionDescription(std::string value) = 0;
-
-public:
-    virtual std::string helpString() = 0;;
-};
-
-class DefaultHelpFormatter : public HelpFormatter
-{
-private:
-    int initialIndentLevel = 4;
-    std::string initialIndent = std::string(initialIndentLevel, ' ');
-
-    int spacesPerIndentLevel = 2;
-    int minJustified = 10;
-    int maxJustified = 20;
-    std::string keyValSep = " - ";
-    int keValSepLength = 3;
-
-    std::size_t mMaxOptComLength = 0;
-
-
-    Parser& mParser;
-
-    // A flag for whether we should print out ANSI colora
-    bool mIsTTY = true;
-
-protected: 
-    virtual void generateCommandHelp(CommandPtr com, int maxOptComLength);
-    virtual void generateSubParserHelp(SubParserPtr com, int maxOptComLength);
-
-public:
-    DefaultHelpFormatter(Parser& parser);
-
-    void programName(std::string name) override;
-
-    void beginGroup(std::string value) override;
-    void endGroup() override;
-
-    void commandName(std::string key) override;
-    void optionName(std::string key) override;
-    void optionDash(bool longDash) override;
-    void optionSeperator() override;
-
-    void seperator() override;
-
-    void commandDescription(std::string value) override;
-    void optionDescription(std::string value) override;
-
-    std::string helpString() override;
-};
-
+//! The main parser class that contains sub-parsers, commands, and options to 
+//! aid in parsing a command line.
 class Parser
 {
     friend class HelpFormatter;
