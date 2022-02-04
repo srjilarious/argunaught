@@ -1,34 +1,33 @@
 #include <argunaught/argunaught.hpp>
 
-#include <unistd.h>
-
 namespace argunaught
 {
-
-Command::Command(
-        std::string n, 
-        std::string h, 
-        std::vector<Option> opt, 
-        CommandHandler f//, 
-        // bool _handlesSubParsers
-    )
-    : name(n), help(h), options(opt), handler(f)//, handlesSubParsers(_handlesSubParsers)
-{
-}
-
-SubParser::SubParser(
-        std::string n, 
-        std::string h, 
-        std::vector<Option> opt, 
-        SubParserHandler f
-    )
-    : name(n), help(h), options(opt), handler(f)
-{
-}
 
 Parser::Parser(std::string name, std::string banner)
     : mName(name), mBanner(banner)
 {
+}
+
+Parser& 
+Parser::subParser(
+        std::string name, 
+        std::string help, 
+        SubParserHandler func)
+{
+    mSubParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, {}, func)));
+    return *this; 
+}
+
+Parser& 
+Parser::subParser(
+        std::string name, 
+        std::string help, 
+        std::vector<Option> options, 
+        SubParserHandler func
+    )
+{
+    mSubParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, options, func)));
+    return *this; 
 }
 
 Parser& 
@@ -73,96 +72,13 @@ Parser::options(
     return options(opts.values());
 }
 
-
-
-OptionList::OptionList(std::vector<Option> opts)
+CommandGroup& 
+Parser::group(std::string name)
 {
-    for(auto& opt : opts) {
-        ARGUNAUGHT_TRACE("Adding option -%s, --%s\n", opt.shortName.c_str(), opt.longName.c_str());
-        addOption(opt);
-    }
+    mGroups.push_back(CommandGroup(this, name));
+    return *(mGroups.end()-1);
 }
 
-OptionList::OptionList(const OptionList& opts)
-    : OptionList(opts.mOptions)
-{
-}
-
-OptionError 
-OptionList::addOption(Option opt)
-{
-    // FIX: Currently no duplicate checks.
-    mOptions.push_back(opt);
-    return OptionError::None;
-}
-
-OptionError 
-OptionList::addOptions(const OptionList& opts)
-{
-    // FIX: Currently no duplicate checks.
-    mOptions.insert(mOptions.end(), opts.mOptions.begin(), opts.mOptions.end());
-    return OptionError::None;
-}
-
-std::optional<Option> 
-OptionList::findShortOption(std::string optionName) const
-{
-    ARGUNAUGHT_TRACE("Looking for short option, have %d options\n", mOptions.size());
-    auto it = std::find_if(std::begin(mOptions), std::end(mOptions), [optionName] (const Option& opt) {
-        ARGUNAUGHT_TRACE("Checking '%s' against '%s'\n", optionName.c_str(), opt.shortName.c_str());
-        return opt.shortName == optionName;
-    });
-
-    if(it != mOptions.end()) {
-        return std::optional<Option>(*it);
-    }
-
-    return std::nullopt;
-}
-
-std::optional<Option> 
-OptionList::findLongOption(std::string optionName) const
-{
-    auto it = std::find_if(std::begin(mOptions), std::end(mOptions), [optionName] (const Option& opt) {
-        return opt.longName == optionName;
-    });
-
-    if(it != mOptions.end()) {
-        ARGUNAUGHT_TRACE("Found long option in parser.");
-        return std::optional<Option>(*it);
-    }
-
-    return std::nullopt;
-}
-
-int 
-ParseResult::runCommand() const
-{
-    if(command) {
-        return command->handler(*this);
-    }
-
-    return -1;
-}
-
-std::optional<OptionResult> 
-ParseResult::getOption(std::string optionLongName) const
-{
-    std::optional<OptionResult> result = std::nullopt;
-    auto found = std::find_if(options.begin(), options.end(), [&](auto val) {
-        return val.optionName == optionLongName;
-    });
-    if(found != options.end()) {
-        result = *found;
-    }
-    return result;
-}
-
-bool 
-ParseResult::hasOption(std::string optionLongName) const
-{
-    return getOption(optionLongName) != std::nullopt;
-}
 
 std::optional<OptionResult>
 Parser::parseOption(std::shared_ptr<Command> command, 
@@ -252,90 +168,6 @@ Parser::parseOption(std::shared_ptr<Command> command,
 }
 
 
-CommandGroup& 
-Parser::group(std::string name)
-{
-    mGroups.push_back(CommandGroup(this, name));
-    return *(mGroups.end()-1);
-}
-
-CommandGroup::CommandGroup(
-        Parser* parent, 
-        std::string _name, 
-        std::string _desc
-    ) : mParent(parent),
-        name(_name),
-        description(_desc)
-{
-}
-
-CommandGroup& 
-CommandGroup::command(
-        std::string name, 
-        std::string help, 
-        CommandHandler func)
-{
-    commands.push_back(std::shared_ptr<Command>(new Command(name, help, {}, func)));
-    return *this;    
-}
-
-CommandGroup& 
-CommandGroup::command(
-        std::string name, 
-        std::string help, 
-        std::vector<Option> options, 
-        CommandHandler func
-    )
-{
-    commands.push_back(std::make_shared<Command>(name, help, options, func));
-    return *this;
-}
-
-CommandGroup& 
-CommandGroup::subParser(
-        std::string name, 
-        std::string help, 
-        SubParserHandler func)
-{
-    subParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, {}, func)));
-    return *this; 
-}
-
-CommandGroup& 
-CommandGroup::subParser(
-        std::string name, 
-        std::string help, 
-        std::vector<Option> options, 
-        SubParserHandler func
-    )
-{
-    subParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, options, func)));
-    return *this; 
-}
-
-Parser& 
-Parser::subParser(
-        std::string name, 
-        std::string help, 
-        SubParserHandler func)
-{
-    mSubParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, {}, func)));
-    return *this; 
-}
-
-Parser& 
-Parser::subParser(
-        std::string name, 
-        std::string help, 
-        std::vector<Option> options, 
-        SubParserHandler func
-    )
-{
-    mSubParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, options, func)));
-    return *this; 
-}
-
-
 ParseResult
 Parser::parse(int argc, const char* argv[]) const
 {
@@ -352,6 +184,7 @@ Parser::parse(int argc, const char* argv[]) const
 
     return parse(args);
 }
+
 
 ParseResult
 Parser::parse(ParseResult const& prevParseResult)
