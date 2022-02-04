@@ -21,7 +21,7 @@ endif()
 
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-conan_cmake_run(REQUIRES Catch2/2.11.1@catchorg/stable
+conan_cmake_run(REQUIRES catch2/2.13.8
              BASIC_SETUP)
 
 add_executable(unit_tests unit_tests.cpp)
