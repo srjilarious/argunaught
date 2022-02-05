@@ -16,8 +16,6 @@ namespace argunaught
 {
 
 
-
-
 #ifdef TRACE_OPTIONS
 #define ARGUNAUGHT_TRACE(...) printf(__VA_ARGS__)
 #else
@@ -40,8 +38,13 @@ enum class OptionError
 //! Information about errors caught while parsing the command line with the
 //! current parser.
 struct ParseError {
+    //! The type of error the parser found
     ParseErrorType type;
+
+    //! Which item in the list of command line tokens generated the error
     int pos;
+
+    //! The problematic command line token.
     std::string value;
 };
 
@@ -54,8 +57,21 @@ struct ParseError {
  */
 struct Option
 {
-    std::string longName, shortName;
+    //! The 'long' option name following `--`.
+    std::string longName;
+
+    //! The 'short' option name following `-`.
+    std::string shortName;
+
+    //! A description of the option, used for generating help.
     std::string description;
+
+    //! The number of parameters this option expects, 
+    //
+    //! `-1` means an unlimited number of parameters are accepted, with the 
+    //! parser stopping if an option (starting with `-` or `--`) is found.
+    //! Similarly a lone `--` will end option parameter parsing and move to 
+    //! positional parameters.
     int maxNumParams = 0;
 };
 
@@ -77,12 +93,24 @@ public:
 
     OptionList(std::vector<Option> opts);
     OptionList(const OptionList& opts);
+
+    //! Adds an option to the list of supported options
     OptionError addOption(Option opt);
+
+    //! Adds an existing option list to this one
+    //
+    //! Note: No duplicates are checked for, so any existing options 
+    //!       in this list will end up taking precedence.
     OptionError addOptions(const OptionList& opts);
+
+    //! Looks for an option based on its short name
     std::optional<Option> findShortOption(std::string optionName) const;
+
+    //! Looks for an option using its long name
     std::optional<Option> findLongOption(std::string optionName) const;
 
-    const std::vector<Option>& values() const {return mOptions; }
+    //! Returns a constant reference to all of the contained options.
+    const std::vector<Option>& values() const { return mOptions; }
 };
 
 
@@ -93,33 +121,37 @@ class ParseResult
     friend class Parser;
 
 private:
-    // We keep track of the options from the parser for use in sub parsing.
+    //! We keep track of the options from the parser for use in sub parsing.
     OptionList optionsList;
 
 public:
-    // Options found, merged result of global and command options.
+    //! Options found, merged result of global and command options.
     OptionResultList options;
 
+    //! Positional arguments found after parsing any command and options with 
+    //! their parameters.
     std::vector<std::string> positionalArgs;
 
-    // Command selected, if any.
+    //! Command selected, if any.
     std::shared_ptr<Command> command;
 
+    //! List of any errors found during parsing
     std::vector<ParseError> errors;
 
+    //! Helper method to check if an error was found during parsing.
     bool hasError() const { return errors.size() > 0; }
 
-    // Returns whether a command was found.
+    //! Returns whether a command was found.
     bool hasCommand() const { return command != nullptr; }
     
-    // Returns the option result and its params if it was found during parsing.
+    //! Returns the option result and its params if it was found during parsing.
     std::optional<OptionResult> getOption(std::string optionLongName) const;
 
-    // Returns whether the given option was found during parsing.
+    //! Returns whether the given option was found during parsing.
     bool hasOption(std::string optionLongName) const;
 
-    // Runs the sub command if there is one returning its value or
-    // if there is no sub-command returns -1.
+    //! Runs the sub command if there is one returning its value or
+    //! if there is no sub-command returns -1  automatically.
     int runCommand() const;
 };
 
@@ -127,8 +159,18 @@ public:
 struct Command 
 {
     Command(std::string n, std::string h, std::vector<Option> opt, CommandHandler f);
-    std::string name, help;
+
+    //! The name of the command, i.e. the command line token used to invoke this command.
+    std::string name;
+    
+    //! A description of the command for help text.
+    std::string help;
+
+    //! A list of options that are specific to this command.
     OptionList options;
+
+    //! The function to call when running this command.  Returns an int to allow returning
+    //! the result from main when running the command.
     CommandHandler handler;
 };
 
@@ -136,8 +178,19 @@ struct Command
 struct SubParser 
 {
     SubParser(std::string n, std::string h, std::vector<Option> opt, SubParserHandler f);
-    std::string name, help;
+
+    //! The name of the sub parser.  Acts like a command that specifically allows its own
+    //! sub parsing call.
+    std::string name;
+
+    //! A description of the sub parsing special command.
+    std::string help;
+
+    //! A list of options that are specific to this parser.
     OptionList options;
+
+    //! A handling function that can define and run its own parser on the remaining 
+    //! command line tokens.
     SubParserHandler handler;
 };
 
@@ -150,18 +203,33 @@ private:
 public:
     CommandGroup() = default;
     CommandGroup(Parser* parent) : mParent(parent) {}
-    CommandGroup(Parser* parent, std::string _name, std::string _desc = "");  
+    CommandGroup(Parser* parent, std::string _name, std::string _desc = "");
+
+    //! The name of the group of commands, used for grouping commands in help text. 
     std::string name;
+
+    //! A description of the group of commands.
     std::string description;
+
+    //! A list of commands in this group
     CommandList commands;
+
+    //! A list of subparsers (which are just special commands)
     SubParserList subParsers;
 
+    //! Creates a command in the group
     CommandGroup& command(std::string name, std::string help, CommandHandler func);
+
+    //! Creates a command in the group, with extra options for the command
     CommandGroup& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func);
 
+    //! Creates a subparser in the group
     CommandGroup& subParser(std::string name, std::string help, SubParserHandler func);
+
+    //! Creates a subparser in the group, with extra options for the subparser
     CommandGroup& subParser(std::string name, std::string help, std::vector<Option> options, SubParserHandler func);
 
+    //! Ends the group returning a refernce to the parent instantiating parent to allow a fluent interface.
     Parser& endGroup() { return *mParent; }
 };
 
@@ -173,16 +241,28 @@ class Parser
     friend class DefaultHelpFormatter;
 
 private:
+    //! Name of the program
     std::string mName;
-    std::string mBanner;
-    CommandList mCommands;
-    SubParserList mSubParsers;
-    OptionList mOptions;
-    Parser* mParent = nullptr;
 
-    // Any grouped commands (which also will be added to commands)
+    //! A special banner to use instead of the program name in help text generation.
+    std::string mBanner;
+
+    //! A list of commands that can be parsed
+    CommandList mCommands;
+
+    //! A list of subparsers (which are special commands with their own parsers)
+    SubParserList mSubParsers;
+
+    //! Global options for the program
+    OptionList mOptions;
+
+    //Parser* mParent = nullptr;
+
+    //! Any grouped commands
     std::vector<CommandGroup> mGroups;
 
+    //! Helper method to parse an option, handling potentially command specific options
+    //! modifying the deque of command line tokens and adding results to the parseResult.
     std::optional<OptionResult> parseOption(
             std::shared_ptr<Command> command, 
             std::deque<std::string>& parseText,
@@ -191,27 +271,42 @@ private:
 public:
     Parser(std::string programName, std::string banner = "");
 
+    //! Creates a command in the parser.
     Parser& command(std::string name, std::string help, CommandHandler func);
+
+    //! Creates a command in the parser with command specific options.
     Parser& command(std::string name, std::string help, std::vector<Option> options, CommandHandler func);
     
+    //! Creates a subparser (a special type of command) in the parser.
     Parser& subParser(std::string name, std::string help, SubParserHandler func);
+
+    //! Creates a  subparser (a special type of command) in the parser with command specific options.
     Parser& subParser(std::string name, std::string help, std::vector<Option> options, SubParserHandler func);
     
+    //! Adds a list of options to the parser
     Parser& options(std::vector<Option> options);
+
+    //! Adds a list of options to the parser
     Parser& options(const OptionList& options);
 
+    //! Returns a const reference to the command list defined for this parser.
     const CommandList& commands() const { return mCommands; }
+
+    //! Returns a const reference to the list of global options defined on this parser.
     const OptionList& options() const { return mOptions; }
 
+    //! Creates a new command group that can have commands or subparsers added to create 
+    //! a logical grouping of commands for the program.  Useful for the generation of the help.
     CommandGroup& group(std::string name);
 
+    //! Parses the command line, given argc and argv from main.
     ParseResult parse(int argc, const char* argv[]) const;
-    
-    // Parses the given arguments, assumes the executable name has been skipped.
+
+    //! Parses the given arguments, assumes the executable name has been skipped.
     ParseResult parse(std::deque<std::string> args, OptionResultList existingOptions = {}) const;
 
-    // Allows performing sub command parsing using options from previous 
-    // parser call.
+    //! Allows performing sub command parsing using options from previous 
+    //! parser call.
     ParseResult parse(ParseResult const& prevParseResult);
 };
 
