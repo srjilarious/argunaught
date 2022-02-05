@@ -64,6 +64,7 @@ struct Option
     std::string shortName;
 
     //! A description of the option, used for generating help.
+    //! `\n` is replaced in the default help formatting with proper indentation.
     std::string description;
 
     //! The number of parameters this option expects, 
@@ -164,6 +165,7 @@ struct Command
     std::string name;
     
     //! A description of the command for help text.
+    //! `\n` is replaced in the default help formatting with proper indentation.
     std::string help;
 
     //! A list of options that are specific to this command.
@@ -184,6 +186,7 @@ struct SubParser
     std::string name;
 
     //! A description of the sub parsing special command.
+    //! `\n` is replaced in the default help formatting with proper indentation.
     std::string help;
 
     //! A list of options that are specific to this parser.
@@ -255,8 +258,6 @@ private:
 
     //! Global options for the program
     OptionList mOptions;
-
-    //Parser* mParent = nullptr;
 
     //! Any grouped commands
     std::vector<CommandGroup> mGroups;

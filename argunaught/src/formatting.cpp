@@ -1,3 +1,6 @@
+#include <unistd.h> // for STDOUT_FILENO and isatty
+#include <sys/ioctl.h> //ioctl() and TIOCGWINSZ
+
 #include <argunaught/argunaught.hpp>
 
 namespace 
@@ -16,6 +19,36 @@ replaceAll(std::string const& orig, char c, std::string const& replace)
         }
     }
     return newStr;
+}
+
+std::vector<std::string>
+split(std::string const& orig, char c)
+{
+    std::vector<std::string> result;
+    std::string newStr;
+    for(char ch : orig) {
+        if(ch != c) {
+            newStr += ch;
+        }
+        else {
+            result.push_back(newStr);
+            newStr = "";
+        }
+    }
+    
+    if(newStr.size() != 0) {
+        result.push_back(newStr);
+    }
+
+    return result;
+}
+
+std::size_t
+displayWidth()
+{
+    struct winsize size;
+    ioctl(STDOUT_FILENO, TIOCGWINSZ, &size);
+    return static_cast<std::size_t>(size.ws_col);
 }
 
 } // End anonymous namespace
@@ -37,7 +70,7 @@ HelpFormatter::optionHelpName(Option const& opt)
     }
 }
 
-size_t 
+std::size_t 
 HelpFormatter::optionHelpNameLength(Option const& opt)
 {
     size_t length = 2 + opt.longName.size();
@@ -47,6 +80,76 @@ HelpFormatter::optionHelpNameLength(Option const& opt)
     return length;
 }
 
+void
+HelpFormatter::appendText(
+        std::string value,
+        bool handleFormatting
+    )
+{
+    if(handleFormatting) {
+        // TODO: Handle max allowed line < curr indent amount
+        // TODO: Handle hyphenating
+        // TODO: Handle new lines again.
+
+        std::size_t start = 0;
+        std::size_t prevWordLoc = 0;
+        std::size_t nextWordLoc = 0;
+        std::size_t currWriteLen = 0;
+
+        while(true) {
+            prevWordLoc = nextWordLoc;
+            nextWordLoc = value.find(' ', prevWordLoc);
+            if(nextWordLoc == std::string::npos) {
+                currWriteLen = value.size() - start;
+                nextWordLoc = value.size();
+            }
+            else {
+                currWriteLen = nextWordLoc - start;
+                nextWordLoc++;
+            }
+
+            if((mCurrLineLength + currWriteLen) >= mMaxLineWidth) {
+                // if(start == prevWordLoc) {
+                //     // hyphenate here.
+                // }
+
+                // word wrap break
+                mHelpString += value.substr(start, prevWordLoc - start) + "\n";
+                mHelpString += std::string(mCurrIndentAmount, ' ');
+                mCurrLineLength = mCurrIndentAmount;
+                currWriteLen = 0;
+                start = prevWordLoc;
+            }
+            
+            if(nextWordLoc >= value.size()) {
+                mHelpString += value.substr(start, currWriteLen);
+                mCurrLineLength += currWriteLen;
+                break;
+            }
+        }
+
+        //auto splitLines = split(value, '\n');
+
+        // TODO: Implement line wrapping on word boundaries.
+        // for(auto& s : splitLines) {
+        //     if(mCurrLineLength + s.size() > mMaxLineWidth) {
+        //         mHelpString += "\n";
+        //         mHelpString += std::string(mCurrIndentAmount, ' ');
+        //         mHelpString += 
+        //     }
+        // }
+    } else {
+        mHelpString += value;
+        mCurrLineLength += value.size();
+    }
+}
+
+void
+HelpFormatter::newLine() 
+{
+    mHelpString += '\n';
+    mCurrLineLength = 0;
+}
 
 void
 DefaultHelpFormatter::generateCommandHelp(
@@ -58,39 +161,40 @@ DefaultHelpFormatter::generateCommandHelp(
             
     // Justify the description.
     if(com->name.size() < maxOptComLength) {
-        mHelpString += std::string(maxOptComLength - com->name.size(), ' '); 
+        appendText(std::string(maxOptComLength - com->name.size(), ' '));
     }
     if(com->help != "") {
+        mCurrIndentAmount = maxOptComLength + 4 + keyValSep.size();
         // Replace new lines in help with justified new lines
-        auto indentLength = maxOptComLength + 4 + 3;
-        auto indent = "\n" + std::string(indentLength, ' ');
-        auto comHelp = replaceAll(com->help, '\n', indent);
-        //help += " - " + comHelp;
+        //auto indentLength = maxOptComLength + 4 + 3;
+        //auto indent = "\n" + std::string(indentLength, ' ');
+        //auto comHelp = replaceAll(com->help, '\n', indent);
         seperator();
-        commandDescription(comHelp);
+        commandDescription(com->help);
     }
 
-    mHelpString += "\n";
+    newLine();
 
     for(auto opt : com->options.values()) {
-        mHelpString += std::string(initialIndentLevel + spacesPerIndentLevel, ' ');
+        appendText(std::string(initialIndentLevel + spacesPerIndentLevel, ' '));
         optionHelpName(opt);
         auto optLen = optionHelpNameLength(opt);
 
         // Justify the description.
         if((optLen+spacesPerIndentLevel) < maxOptComLength) {
-            mHelpString += std::string(maxOptComLength - optLen - spacesPerIndentLevel, ' '); 
+            appendText(std::string(maxOptComLength - optLen - spacesPerIndentLevel, ' '));
         }
 
         if(opt.description != "") {
-            auto indentLength = maxOptComLength + 6 + 3;
-            auto indent = "\n" + std::string(indentLength, ' ');
-            auto optDesc = replaceAll(opt.description, '\n', indent);
+            mCurrIndentAmount = maxOptComLength + 4 + keyValSep.size();
+            //auto indentLength = maxOptComLength + 6 + keyValSep.size();
+            //auto indent = "\n" + std::string(indentLength, ' ');
+            //auto optDesc = replaceAll(opt.description, '\n', indent);
             //mHelpString += " - " + optDesc;
             seperator();
-            optionDescription(optDesc);
+            optionDescription(opt.description);
         }
-        mHelpString += "\n";
+        newLine();
     }
 }
 
@@ -104,39 +208,40 @@ DefaultHelpFormatter::generateSubParserHelp(
             
     // Justify the description.
     if(com->name.size() < maxOptComLength) {
-        mHelpString += std::string(maxOptComLength - com->name.size(), ' '); 
+        appendText(std::string(maxOptComLength - com->name.size(), ' '));
     }
     if(com->help != "") {
-        // Replace new lines in help with justified new lines
-        auto indentLength = maxOptComLength + 4 + 3;
-        auto indent = "\n" + std::string(indentLength, ' ');
-        auto comHelp = replaceAll(com->help, '\n', indent);
+        mCurrIndentAmount = maxOptComLength + 4 + keyValSep.size();
+        // auto indentLength = maxOptComLength + 4 + keyValSep.size();
+        // auto indent = "\n" + std::string(indentLength, ' ');
+        // auto comHelp = replaceAll(com->help, '\n', indent);
         //help += " - " + comHelp;
         seperator();
-        commandDescription(comHelp);
+        commandDescription(com->help);
     }
 
-    mHelpString += "\n";
+    newLine();
 
     for(auto opt : com->options.values()) {
-        mHelpString += std::string(initialIndentLevel + spacesPerIndentLevel, ' ');
+        appendText(std::string(initialIndentLevel + spacesPerIndentLevel, ' '));
         optionHelpName(opt);
         auto optLen = optionHelpNameLength(opt);
 
         // Justify the description.
         if((optLen+spacesPerIndentLevel) < maxOptComLength) {
-            mHelpString += std::string(maxOptComLength - optLen - spacesPerIndentLevel, ' '); 
+            appendText(std::string(maxOptComLength - optLen - spacesPerIndentLevel, ' '));
         }
 
         if(opt.description != "") {
-            auto indentLength = maxOptComLength + 6 + 3;
-            auto indent = "\n" + std::string(indentLength, ' ');
-            auto optDesc = replaceAll(opt.description, '\n', indent);
+            mCurrIndentAmount = maxOptComLength + 4 + keyValSep.size();
+            // auto indentLength = maxOptComLength + 6 + keyValSep.size();
+            // auto indent = "\n" + std::string(indentLength, ' ');
+            // auto optDesc = replaceAll(opt.description, '\n', indent);
             //mHelpString += " - " + optDesc;
             seperator();
-            optionDescription(optDesc);
+            optionDescription(opt.description);
         }
-        mHelpString += "\n";
+        newLine();
     }
 }
 
@@ -144,7 +249,8 @@ DefaultHelpFormatter::DefaultHelpFormatter(Parser& parser)
     : mParser(parser)
 {
     mMaxOptComLength = std::max(findMaxOptComLength(parser), (size_t)maxJustified);
-    mIsTTY = true;//isatty(fileno(stdout)) == 0;
+    mIsTTY = isatty(fileno(stdout)) != 0;
+    mMaxLineWidth = displayWidth()-1;
 }
 
 void 
@@ -153,7 +259,9 @@ DefaultHelpFormatter::programName(std::string name)
     if(mIsTTY) {
         mHelpString += color::foreground::BoldGreenColor;
     }
-    mHelpString += name + "\n";
+    
+    appendText(name);
+    newLine();
 }
 
 void 
@@ -164,7 +272,10 @@ DefaultHelpFormatter::beginGroup(std::string value)
         mHelpString += color::foreground::BoldBlueColor;
     }
     
-    mHelpString += "\n" + value + ":\n";
+    
+    newLine();
+    appendText(value + ":");
+    newLine();
 }
 
 void 
@@ -181,7 +292,7 @@ DefaultHelpFormatter::commandName(std::string key)
         mHelpString += color::foreground::BoldYellowColor;
     }
     
-    mHelpString += key;
+    appendText(key);
 }
 
 void 
@@ -191,7 +302,7 @@ DefaultHelpFormatter::optionName(std::string key)
         mHelpString += color::foreground::BoldCyanColor;
     }
     
-    mHelpString += key;
+    appendText(key);
 }
 
 void 
@@ -202,10 +313,11 @@ DefaultHelpFormatter::optionDash(bool longDash)
     }
     
     if(longDash) {
-        mHelpString += "--";
+        appendText("--");
+        
     }
     else {
-        mHelpString += "-";
+        appendText("-");
     }
 }
 
@@ -216,7 +328,7 @@ DefaultHelpFormatter::optionSeperator()
         mHelpString += color::foreground::CyanColor;
     }
     
-    mHelpString += ", ";
+    appendText(", ");
 }
 
 void 
@@ -226,7 +338,7 @@ DefaultHelpFormatter::seperator()
         mHelpString += color::foreground::GrayColor;
     }
     
-    mHelpString += keyValSep;
+    appendText(keyValSep);
 }
 
 void 
@@ -236,8 +348,7 @@ DefaultHelpFormatter::commandDescription(std::string value)
         mHelpString += color::foreground::WhiteColor;
     }
     
-    mHelpString += value;
-
+    appendText(value, true);
 }
 
 void 
@@ -247,8 +358,7 @@ DefaultHelpFormatter::optionDescription(std::string value)
         mHelpString += color::foreground::WhiteColor;
     }
     
-    mHelpString += value;
-
+    appendText(value, true);
 }
 
 std::size_t 
@@ -286,6 +396,7 @@ std::string
 DefaultHelpFormatter::helpString()
 {
     mHelpString = "";
+    mCurrLineLength = 0;
 
     if(mParser.mBanner != "") {
         programName(mParser.mBanner);
@@ -307,14 +418,14 @@ DefaultHelpFormatter::helpString()
         }
 
         if(opt.description != "") {
-            auto indentLength = mMaxOptComLength + initialIndentLevel + keValSepLength;
-            auto indent = "\n" + std::string(indentLength, ' ');
-            auto optDesc = replaceAll(opt.description, '\n', indent);
+            mCurrIndentAmount = mMaxOptComLength + initialIndentLevel + keyValSep.size();
+            //auto indent = "\n" + std::string(indentLength, ' ');
+            //auto optDesc = replaceAll(opt.description, '\n', indent);
             //mHelpString += keyValSep + optDesc;
             seperator();
-            optionDescription(optDesc);
+            optionDescription(opt.description);
         }
-        mHelpString += "\n";
+        newLine();
     }
 
     if( mParser.mCommands.size() > 0 )
@@ -348,7 +459,7 @@ DefaultHelpFormatter::helpString()
         }
     }
 
-    mHelpString += "\n";
+    newLine();
     return mHelpString;
 }
 

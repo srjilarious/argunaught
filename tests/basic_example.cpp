@@ -50,7 +50,15 @@ int main(int argc, const char* argv[])
             .command("evocate", "Magical stuff!",
                 {
                     {"fire", "f", "fiery option", 0},
-                    {"ice", "i", "cold option", 0}
+                    {"ice", "i", "cold option", 0},
+                    {"long", "l",
+                    "Here is a very long description for an option "
+                    "that should end up spanning multiple lines to show "
+                    "how word wrapping operates when the display width "
+                    "is smaller than the amount of space needed to show "
+                    "the description.  Embedding a '\\n' is possible to "
+                    "make line breaks, but it won't wrap properly to the "
+                    "width of the display the way that word wrapping can.", 0}
                 },
                 [] (auto& parseResult) -> int 
                 { 

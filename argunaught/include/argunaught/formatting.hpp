@@ -71,11 +71,19 @@ class HelpFormatter
 {
 protected:
     std::string mHelpString;
+    std::size_t mCurrLineLength = 0;
+    std::size_t mCurrIndentAmount = 0;
 
+    std::size_t mMaxLineWidth = 2048;
+
+    virtual void appendText(std::string valuem, bool handleFormatting=false);
+    virtual void newLine();
+
+    //! Finds the longest option/command name, taking max justification into account.
     std::size_t findMaxOptComLength(Parser& parser);
 
     virtual void optionHelpName(Option const& opt);
-    virtual size_t optionHelpNameLength(Option const& opt);
+    virtual std::size_t optionHelpNameLength(Option const& opt);
 
     virtual void programName(std::string name) = 0;
 
@@ -107,7 +115,6 @@ private:
     int minJustified = 10;
     int maxJustified = 20;
     std::string keyValSep = " - ";
-    int keValSepLength = 3;
 
     std::size_t mMaxOptComLength = 0;
 
