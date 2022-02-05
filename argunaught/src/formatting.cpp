@@ -94,12 +94,25 @@ HelpFormatter::appendText(
         std::size_t start = 0;
         std::size_t prevWordLoc = 0;
         std::size_t nextWordLoc = 0;
+        std::size_t nextNewLineLoc = 0;
         std::size_t currWriteLen = 0;
 
         while(true) {
             prevWordLoc = nextWordLoc;
             nextWordLoc = value.find(' ', prevWordLoc);
-            if(nextWordLoc == std::string::npos) {
+
+            // TODO: Shouldn't need to search on each loop.
+            nextNewLineLoc = value.find('\n', prevWordLoc);
+
+            if(nextNewLineLoc < nextWordLoc) {
+                mHelpString += value.substr(start, nextNewLineLoc - start) + "\n";
+                mHelpString += std::string(mCurrIndentAmount, ' ');
+                mCurrLineLength = mCurrIndentAmount;
+                currWriteLen = 0;
+                start = nextNewLineLoc+1;
+                continue;
+            }
+            else if(nextWordLoc == std::string::npos) {
                 currWriteLen = value.size() - start;
                 nextWordLoc = value.size();
             }
