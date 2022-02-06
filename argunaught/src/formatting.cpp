@@ -72,36 +72,31 @@ formatAndAppendText(
 
     std::size_t start = 0;
     std::size_t prevWordLoc = 0;
-    std::size_t currWriteLen = 0;
 
-    for(std::size_t ii = 0; ii < value.size(); ii++) {
+    for(std::size_t ii = 0; ii < value.size(); ii++) 
+    {
         if(value[ii] == ' ') {
-            currWriteLen = ii - start;
-
-            if((currLineLen + currWriteLen) >= maxLineLength) {
-                // if(start == prevWordLoc) {
-                //     // hyphenate here.
-                // }
-
-                // word wrap break
-                dest += value.substr(start, prevWordLoc - start) + "\n";
-                dest += std::string(currIndentAmount, ' ');
-                currLineLen = currIndentAmount;
-                currWriteLen = 0;
-                start = prevWordLoc+1;
-            } 
-            else {
-                prevWordLoc = ii;
-            }
+            prevWordLoc = ii;
         }
         else if(value[ii] == '\n') {
             dest += value.substr(start, ii - start) + "\n";
             dest += std::string(currIndentAmount, ' ');
             currLineLen = currIndentAmount;
-            currWriteLen = 0;
             start = ii+1;
             ii++; // Jump past the new line.
         }
+
+        if((currLineLen + ii - start) >= maxLineLength) {
+            // if(start == prevWordLoc) {
+            //     // hyphenate here.
+            // }
+
+            // word wrap break
+            dest += value.substr(start, prevWordLoc - start) + "\n";
+            dest += std::string(currIndentAmount, ' ');
+            currLineLen = currIndentAmount;
+            start = prevWordLoc+1;
+        } 
     }
     
     // Write any remaining text.

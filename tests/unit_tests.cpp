@@ -299,4 +299,25 @@ TEST_CASE( "Test word wrap and formatting helper.", "[utils]" ) {
         REQUIRE(lineLen == 5);
         REQUIRE(result == "Hello\nWorld");
     }
+    
+    SECTION("Simple embedded new line.") {
+        std::string result;
+        auto lineLen = argunaught::formatAndAppendText(result, 0, 0, 8, "Hello\nWorld");
+        REQUIRE(lineLen == 5);
+        REQUIRE(result == "Hello\nWorld");
+    }
+    
+    SECTION("Word wrap w/ embedded new line.") {
+        std::string result;
+        auto lineLen = argunaught::formatAndAppendText(result, 0, 0, 8, "Hello World\nBam!");
+        REQUIRE(lineLen == 4);
+        REQUIRE(result == "Hello\nWorld\nBam!");
+    }
+
+    SECTION("Word wrap w/ embedded new line and indentation.") {
+        std::string result;
+        auto lineLen = argunaught::formatAndAppendText(result, 0, 2, 8, "Hello World\nBam!");
+        REQUIRE(lineLen == 6);
+        REQUIRE(result == "Hello\n  World\n  Bam!");
+    }
 }
