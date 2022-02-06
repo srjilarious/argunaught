@@ -166,7 +166,7 @@ struct Command
     
     //! A description of the command for help text.
     //! `\n` is replaced in the default help formatting with proper indentation.
-    std::string help;
+    std::string description;
 
     //! A list of options that are specific to this command.
     OptionList options;
@@ -187,7 +187,7 @@ struct SubParser
 
     //! A description of the sub parsing special command.
     //! `\n` is replaced in the default help formatting with proper indentation.
-    std::string help;
+    std::string description;
 
     //! A list of options that are specific to this parser.
     OptionList options;
@@ -299,6 +299,10 @@ public:
     //! Creates a new command group that can have commands or subparsers added to create 
     //! a logical grouping of commands for the program.  Useful for the generation of the help.
     CommandGroup& group(std::string name);
+
+    //! Creates a new command group that can have commands or subparsers added to create 
+    //! a logical grouping of commands for the program.  Useful for the generation of the help.
+    CommandGroup& group(std::string name, std::string description);
 
     //! Parses the command line, given argc and argv from main.
     ParseResult parse(int argc, const char* argv[]) const;

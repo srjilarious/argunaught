@@ -51,8 +51,6 @@ displayWidth()
     return static_cast<std::size_t>(size.ws_col);
 }
 
-
-
 } // End anonymous namespace
 
 namespace argunaught
@@ -174,6 +172,12 @@ HelpFormatter::newLine()
     mCurrLineLength = 0;
 }
 
+void 
+HelpFormatter::indent(std::size_t amount)
+{
+    appendText(std::string(amount, ' '));
+}
+
 void
 DefaultHelpFormatter::generateCommandHelp(
         CommandPtr com, 
@@ -182,38 +186,34 @@ DefaultHelpFormatter::generateCommandHelp(
 {
     commandName(com->name);
             
-    // Justify the description.
-    if(com->name.size() < maxOptComLength) {
-        appendText(std::string(maxOptComLength - com->name.size(), ' '));
-    }
-    if(com->help != "") {
-        mCurrIndentAmount = maxOptComLength + 4 + keyValSep.size();
-        // Replace new lines in help with justified new lines
-        //auto indentLength = maxOptComLength + 4 + 3;
-        //auto indent = "\n" + std::string(indentLength, ' ');
-        //auto comHelp = replaceAll(com->help, '\n', indent);
+    if(com->description != "") {
+        // Justify the description.
+        if(com->name.size() < maxOptComLength) {
+            indent(maxOptComLength - com->name.size());
+        }
+
+        mCurrIndentAmount = maxOptComLength + mStyle.initialIndentLevel + mStyle.separator.size();
         seperator();
-        commandDescription(com->help);
+        commandDescription(com->description);
     }
 
     newLine();
 
-    for(auto opt : com->options.values()) {
-        appendText(std::string(initialIndentLevel + spacesPerIndentLevel, ' '));
+    // Print any command specific options with an extra level of indentation
+    for(auto opt : com->options.values()) 
+    {
+        indent(mStyle.initialIndentLevel + mStyle.spacesPerIndentLevel);
         optionHelpName(opt);
         auto optLen = optionHelpNameLength(opt);
 
-        // Justify the description.
-        if((optLen+spacesPerIndentLevel) < maxOptComLength) {
-            appendText(std::string(maxOptComLength - optLen - spacesPerIndentLevel, ' '));
-        }
-
         if(opt.description != "") {
-            mCurrIndentAmount = maxOptComLength + 4 + keyValSep.size();
-            //auto indentLength = maxOptComLength + 6 + keyValSep.size();
-            //auto indent = "\n" + std::string(indentLength, ' ');
-            //auto optDesc = replaceAll(opt.description, '\n', indent);
-            //mHelpString += " - " + optDesc;
+
+            // Justify the description.
+            if((optLen+mStyle.spacesPerIndentLevel) < maxOptComLength) {
+                indent(maxOptComLength - optLen - mStyle.spacesPerIndentLevel);
+            }
+
+            mCurrIndentAmount = maxOptComLength + mStyle.initialIndentLevel + mStyle.separator.size();
             seperator();
             optionDescription(opt.description);
         }
@@ -229,38 +229,37 @@ DefaultHelpFormatter::generateSubParserHelp(
 {
     commandName(com->name);
             
-    // Justify the description.
-    if(com->name.size() < maxOptComLength) {
-        appendText(std::string(maxOptComLength - com->name.size(), ' '));
-    }
-    if(com->help != "") {
-        mCurrIndentAmount = maxOptComLength + 4 + keyValSep.size();
-        // auto indentLength = maxOptComLength + 4 + keyValSep.size();
-        // auto indent = "\n" + std::string(indentLength, ' ');
-        // auto comHelp = replaceAll(com->help, '\n', indent);
-        //help += " - " + comHelp;
+    // Print the sub parser description if it exists
+    if(com->description != "") {
+
+        // Justify the description.
+        if(com->name.size() < maxOptComLength) {
+            indent(maxOptComLength - com->name.size());
+        }
+
+        mCurrIndentAmount = maxOptComLength + mStyle.initialIndentLevel + mStyle.separator.size();
         seperator();
-        commandDescription(com->help);
+        commandDescription(com->description);
     }
 
     newLine();
 
-    for(auto opt : com->options.values()) {
-        appendText(std::string(initialIndentLevel + spacesPerIndentLevel, ' '));
+    // Print any command specific options with an extra level of indentation
+    for(auto opt : com->options.values()) 
+    {
+        indent(mStyle.initialIndentLevel + mStyle.spacesPerIndentLevel);
         optionHelpName(opt);
         auto optLen = optionHelpNameLength(opt);
 
-        // Justify the description.
-        if((optLen+spacesPerIndentLevel) < maxOptComLength) {
-            appendText(std::string(maxOptComLength - optLen - spacesPerIndentLevel, ' '));
-        }
-
+        // Print the option description
         if(opt.description != "") {
-            mCurrIndentAmount = maxOptComLength + 4 + keyValSep.size();
-            // auto indentLength = maxOptComLength + 6 + keyValSep.size();
-            // auto indent = "\n" + std::string(indentLength, ' ');
-            // auto optDesc = replaceAll(opt.description, '\n', indent);
-            //mHelpString += " - " + optDesc;
+
+            // Justify the description.
+            if((optLen+mStyle.spacesPerIndentLevel) < maxOptComLength) {
+                indent(maxOptComLength - optLen - mStyle.spacesPerIndentLevel);
+            }
+
+            mCurrIndentAmount = maxOptComLength + mStyle.initialIndentLevel + mStyle.separator.size();
             seperator();
             optionDescription(opt.description);
         }
@@ -268,19 +267,23 @@ DefaultHelpFormatter::generateSubParserHelp(
     }
 }
 
-DefaultHelpFormatter::DefaultHelpFormatter(Parser& parser)
-    : mParser(parser)
+DefaultHelpFormatter::DefaultHelpFormatter(
+        Parser& parser,
+        DefaultFormatStyle style
+    )
+    : mParser(parser),
+      mStyle(style)
 {
-    mMaxOptComLength = std::max(findMaxOptComLength(parser), (size_t)maxJustified);
+    mMaxOptComLength = std::max(findMaxOptComLength(parser, style.spacesPerIndentLevel), style.maxJustified);
     mIsTTY = isatty(fileno(stdout)) != 0;
-    mMaxLineWidth = displayWidth()-1;
+    mMaxLineWidth = std::min(style.maxLineLength, displayWidth()-1);
 }
 
 void 
 DefaultHelpFormatter::programName(std::string name)
 {
     if(mIsTTY) {
-        mHelpString += color::foreground::BoldGreenColor;
+        mHelpString += mStyle.programNameColor;
     }
     
     appendText(name);
@@ -292,12 +295,12 @@ DefaultHelpFormatter::beginGroup(std::string value)
 {
 
     if(mIsTTY) {
-        mHelpString += color::foreground::BoldBlueColor;
+        mHelpString += mStyle.groupNameColor;
     }
     
     
     newLine();
-    appendText(value + ":");
+    appendText(value + mStyle.groupNameSuffix);
     newLine();
 }
 
@@ -310,9 +313,9 @@ DefaultHelpFormatter::endGroup()
 void 
 DefaultHelpFormatter::commandName(std::string key)
 {
-    mHelpString += std::string(initialIndentLevel, ' ');
+    indent(mStyle.initialIndentLevel);
     if(mIsTTY) {
-        mHelpString += color::foreground::BoldYellowColor;
+        mHelpString += mStyle.commandNameColor;
     }
     
     appendText(key);
@@ -322,7 +325,7 @@ void
 DefaultHelpFormatter::optionName(std::string key)
 {
     if(mIsTTY) {
-        mHelpString += color::foreground::BoldCyanColor;
+        mHelpString += mStyle.optionNameColor;
     }
     
     appendText(key);
@@ -332,7 +335,7 @@ void
 DefaultHelpFormatter::optionDash(bool longDash)
 {
     if(mIsTTY) {
-        mHelpString += color::foreground::CyanColor;
+        mHelpString += mStyle.optionDashColor;
     }
     
     if(longDash) {
@@ -348,27 +351,37 @@ void
 DefaultHelpFormatter::optionSeperator()
 {
     if(mIsTTY) {
-        mHelpString += color::foreground::CyanColor;
+        mHelpString += mStyle.optionSeparatorColor;
     }
     
-    appendText(", ");
+    appendText(mStyle.optionSeparator);
 }
 
 void 
 DefaultHelpFormatter::seperator()
 {
     if(mIsTTY) {
-        mHelpString += color::foreground::GrayColor;
+        mHelpString += mStyle.separatorColor;
     }
     
-    appendText(keyValSep);
+    appendText(mStyle.separator);
+}
+
+void 
+DefaultHelpFormatter::groupDescription(std::string value)
+{
+    if(mIsTTY) {
+        mHelpString += mStyle.groupDescriptionColor;
+    }
+    
+    appendText(value, true);
 }
 
 void 
 DefaultHelpFormatter::commandDescription(std::string value)
 {
     if(mIsTTY) {
-        mHelpString += color::foreground::WhiteColor;
+        mHelpString += mStyle.commandDescriptionColor;
     }
     
     appendText(value, true);
@@ -378,14 +391,14 @@ void
 DefaultHelpFormatter::optionDescription(std::string value)
 {
     if(mIsTTY) {
-        mHelpString += color::foreground::WhiteColor;
+        mHelpString += mStyle.optionDescriptionColor;
     }
     
     appendText(value, true);
 }
 
 std::size_t 
-HelpFormatter::findMaxOptComLength(Parser& parser)
+HelpFormatter::findMaxOptComLength(Parser& parser, std::size_t indentPerLevel)
 {
     // First find the max length of option/command pieces
     std::size_t maxOptComLength = 0;
@@ -396,8 +409,7 @@ HelpFormatter::findMaxOptComLength(Parser& parser)
     for(auto com : parser.mCommands) {
         maxOptComLength = std::max(maxOptComLength, com->name.size());
         for(auto opt : com->options.values()) {
-            // + 2 for the indent on top of normal indentation.
-            maxOptComLength = std::max(maxOptComLength, optionHelpNameLength(opt) + 2);
+            maxOptComLength = std::max(maxOptComLength, optionHelpNameLength(opt) + indentPerLevel);
         }
     }
 
@@ -406,8 +418,7 @@ HelpFormatter::findMaxOptComLength(Parser& parser)
         for(auto com : group.commands) {
             maxOptComLength = std::max(maxOptComLength, com->name.size());
             for(auto opt : com->options.values()) {
-                // + 2 for the indent on top of normal indentation.
-                maxOptComLength = std::max(maxOptComLength, optionHelpNameLength(opt)+ 2);
+                maxOptComLength = std::max(maxOptComLength, optionHelpNameLength(opt) + indentPerLevel);
             }
         }
     }
@@ -431,23 +442,21 @@ DefaultHelpFormatter::helpString()
     // Now build up the help string.
     beginGroup("Global Options");
     for(auto opt : mParser.mOptions.values()) {
-        mHelpString += initialIndent;
+        indent(mStyle.initialIndentLevel);
         optionHelpName(opt);
         auto optLen = optionHelpNameLength(opt);
 
         // Justify the description.
         if(optLen < mMaxOptComLength) {
-            mHelpString += std::string(mMaxOptComLength - optLen, ' '); 
+            indent(mMaxOptComLength - optLen);
         }
 
         if(opt.description != "") {
-            mCurrIndentAmount = mMaxOptComLength + initialIndentLevel + keyValSep.size();
-            //auto indent = "\n" + std::string(indentLength, ' ');
-            //auto optDesc = replaceAll(opt.description, '\n', indent);
-            //mHelpString += keyValSep + optDesc;
+            mCurrIndentAmount = mMaxOptComLength + mStyle.initialIndentLevel + mStyle.separator.size();
             seperator();
             optionDescription(opt.description);
         }
+
         newLine();
     }
 
@@ -469,7 +478,14 @@ DefaultHelpFormatter::helpString()
         {
             beginGroup(group.name);
             if(group.description != "") {
-                mHelpString += std::string(spacesPerIndentLevel, ' ') + group.description + "\n\n";
+
+                indent(mStyle.initialIndentLevel);
+                mCurrIndentAmount = mStyle.initialIndentLevel;
+
+                groupDescription(group.description);
+                
+                newLine();
+                newLine();
             }
 
             for(auto com : group.commands) {

@@ -79,6 +79,13 @@ Parser::group(std::string name)
     return *(mGroups.end()-1);
 }
 
+CommandGroup& 
+Parser::group(std::string name, std::string description)
+{
+    mGroups.push_back(CommandGroup(this, name, description));
+    return *(mGroups.end()-1);
+}
+
 
 std::optional<OptionResult>
 Parser::parseOption(std::shared_ptr<Command> command, 

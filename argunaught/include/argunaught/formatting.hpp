@@ -83,13 +83,14 @@ protected:
     std::size_t mCurrLineLength = 0;
     std::size_t mCurrIndentAmount = 0;
 
-    std::size_t mMaxLineWidth = 2048;
+    std::size_t mMaxLineWidth = 1024;
 
     virtual void appendText(std::string valuem, bool handleFormatting=false);
     virtual void newLine();
+    virtual void indent(std::size_t amount);
 
-    //! Finds the longest option/command name, taking max justification into account.
-    std::size_t findMaxOptComLength(Parser& parser);
+    //! Finds the longest option/command name
+    std::size_t findMaxOptComLength(Parser& parser, std::size_t indentPerLevel);
 
     virtual void optionHelpName(Option const& opt);
     virtual std::size_t optionHelpNameLength(Option const& opt);
@@ -106,6 +107,7 @@ protected:
 
     virtual void seperator() = 0;
 
+    virtual void groupDescription(std::string value) = 0;
     virtual void commandDescription(std::string value) = 0;
     virtual void optionDescription(std::string value) = 0;
 
@@ -113,32 +115,55 @@ public:
     virtual std::string helpString() = 0;;
 };
 
+//! Styling options for the default help formatter implementation.
+struct DefaultFormatStyle
+{
+    std::size_t initialIndentLevel = 4;
+    std::size_t spacesPerIndentLevel = 2;
+    std::size_t minJustified = 10;
+    std::size_t maxJustified = 20;
+    
+    //! The max line length to be used, actual max line length can be shorter
+    //! if the display width is smaller.
+    std::size_t maxLineLength = 120;
+
+    std::string programNameColor = color::foreground::BoldGreenColor;
+
+    std::string groupNameColor = color::foreground::BoldBlueColor;
+    std::string groupNameSuffix = ":";
+
+    std::string commandNameColor = color::foreground::BoldYellowColor;
+    std::string optionNameColor = color::foreground::BoldCyanColor;
+    std::string optionDashColor = color::foreground::CyanColor;
+
+    std::string optionSeparatorColor = color::foreground::CyanColor;
+    std::string optionSeparator = ", ";
+
+    std::string separatorColor = color::foreground::GrayColor;
+    std::string separator = " - ";
+
+    std::string groupDescriptionColor = color::foreground::BoldWhiteColor;
+    std::string commandDescriptionColor = color::foreground::WhiteColor;
+    std::string optionDescriptionColor = color::foreground::WhiteColor;
+};
+
 //! Default help formatter using ANSI color sequences if stdout is a tty.
 class DefaultHelpFormatter : public HelpFormatter
 {
-private:
-    int initialIndentLevel = 4;
-    std::string initialIndent = std::string(initialIndentLevel, ' ');
-
-    int spacesPerIndentLevel = 2;
-    int minJustified = 10;
-    int maxJustified = 20;
-    std::string keyValSep = " - ";
-
+protected:    
     std::size_t mMaxOptComLength = 0;
 
-
     Parser& mParser;
+    DefaultFormatStyle mStyle;
 
     // A flag for whether we should print out ANSI colors
     bool mIsTTY = true;
 
-protected: 
     virtual void generateCommandHelp(CommandPtr com, int maxOptComLength);
     virtual void generateSubParserHelp(SubParserPtr com, int maxOptComLength);
 
 public:
-    DefaultHelpFormatter(Parser& parser);
+    DefaultHelpFormatter(Parser& parser, DefaultFormatStyle style = {});
 
     void programName(std::string name) override;
 
@@ -152,6 +177,7 @@ public:
 
     void seperator() override;
 
+    void groupDescription(std::string value) override;
     void commandDescription(std::string value) override;
     void optionDescription(std::string value) override;
 

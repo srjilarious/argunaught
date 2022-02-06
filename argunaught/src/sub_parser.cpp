@@ -9,7 +9,7 @@ SubParser::SubParser(
         std::vector<Option> opt, 
         SubParserHandler f
     )
-    : name(n), help(h), options(opt), handler(f)
+    : name(n), description(h), options(opt), handler(f)
 {
 }
 

@@ -41,7 +41,7 @@ int main(int argc, const char* argv[])
                 return subParser.parse(args, optionResults);
             }
         )
-        .group("Transformative")
+        .group("Transformative", "Magical state changing commands")
             .command("transmogrify", "Changes matter's state",
                 [] (auto& parseResult) -> int 
                 { 

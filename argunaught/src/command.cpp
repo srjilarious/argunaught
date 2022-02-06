@@ -10,7 +10,7 @@ Command::Command(
         CommandHandler f//, 
         // bool _handlesSubParsers
     )
-    : name(n), help(h), options(opt), handler(f)//, handlesSubParsers(_handlesSubParsers)
+    : name(n), description(h), options(opt), handler(f)//, handlesSubParsers(_handlesSubParsers)
 {
 }
 
