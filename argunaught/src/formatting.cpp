@@ -86,72 +86,52 @@ HelpFormatter::appendText(
         bool handleFormatting
     )
 {
-    if(handleFormatting) {
+    if(handleFormatting) 
+    {
         // TODO: Handle max allowed line < curr indent amount
         // TODO: Handle hyphenating
-        // TODO: Handle new lines again.
 
         std::size_t start = 0;
         std::size_t prevWordLoc = 0;
-        std::size_t nextWordLoc = 0;
-        std::size_t nextNewLineLoc = 0;
         std::size_t currWriteLen = 0;
 
-        while(true) {
-            prevWordLoc = nextWordLoc;
-            nextWordLoc = value.find(' ', prevWordLoc);
+        for(std::size_t ii = 0; ii < value.size(); ii++) {
+            if(value[ii] == ' ') {
+                currWriteLen = ii - start;
 
-            // TODO: Shouldn't need to search on each loop.
-            nextNewLineLoc = value.find('\n', prevWordLoc);
+                if((mCurrLineLength + currWriteLen) >= mMaxLineWidth) {
+                    // if(start == prevWordLoc) {
+                    //     // hyphenate here.
+                    // }
 
-            if(nextNewLineLoc < nextWordLoc) {
-                mHelpString += value.substr(start, nextNewLineLoc - start) + "\n";
+                    // word wrap break
+                    mHelpString += value.substr(start, prevWordLoc - start) + "\n";
+                    mHelpString += std::string(mCurrIndentAmount, ' ');
+                    mCurrLineLength = mCurrIndentAmount;
+                    currWriteLen = 0;
+                    start = prevWordLoc+1;
+                } 
+                else {
+                    prevWordLoc = ii;
+                }
+            }
+            else if(value[ii] == '\n') {
+                mHelpString += value.substr(start, ii - start) + "\n";
                 mHelpString += std::string(mCurrIndentAmount, ' ');
                 mCurrLineLength = mCurrIndentAmount;
                 currWriteLen = 0;
-                start = nextNewLineLoc+1;
-                continue;
-            }
-            else if(nextWordLoc == std::string::npos) {
-                currWriteLen = value.size() - start;
-                nextWordLoc = value.size();
-            }
-            else {
-                currWriteLen = nextWordLoc - start;
-                nextWordLoc++;
-            }
-
-            if((mCurrLineLength + currWriteLen) >= mMaxLineWidth) {
-                // if(start == prevWordLoc) {
-                //     // hyphenate here.
-                // }
-
-                // word wrap break
-                mHelpString += value.substr(start, prevWordLoc - start) + "\n";
-                mHelpString += std::string(mCurrIndentAmount, ' ');
-                mCurrLineLength = mCurrIndentAmount;
-                currWriteLen = 0;
-                start = prevWordLoc;
-            }
-            
-            if(nextWordLoc >= value.size()) {
-                mHelpString += value.substr(start, currWriteLen);
-                mCurrLineLength += currWriteLen;
-                break;
+                start = ii+1;
+                ii++; // Jump past the new line.
             }
         }
-
-        //auto splitLines = split(value, '\n');
-
-        // TODO: Implement line wrapping on word boundaries.
-        // for(auto& s : splitLines) {
-        //     if(mCurrLineLength + s.size() > mMaxLineWidth) {
-        //         mHelpString += "\n";
-        //         mHelpString += std::string(mCurrIndentAmount, ' ');
-        //         mHelpString += 
-        //     }
-        // }
-    } else {
+        
+        // Write any remaining text.
+        std::size_t left = value.size()-start;
+        mHelpString += value.substr(start, left);
+        mCurrLineLength += left;        
+    } 
+    else {
+        // For unformatted text, simply append and update the current line length.
         mHelpString += value;
         mCurrLineLength += value.size();
     }
