@@ -51,10 +51,80 @@ displayWidth()
     return static_cast<std::size_t>(size.ws_col);
 }
 
+
+
 } // End anonymous namespace
 
 namespace argunaught
 {
+
+std::size_t 
+formatAndAppendText(
+        std::string& dest, 
+        std::size_t currLineLen,
+        std::size_t currIndentAmount,
+        std::size_t maxLineLength,
+        std::string value)
+{
+
+    // TODO: Handle max allowed line < curr indent amount
+    // TODO: Handle hyphenating
+
+    std::size_t start = 0;
+    std::size_t prevWordLoc = 0;
+    std::size_t currWriteLen = 0;
+
+    for(std::size_t ii = 0; ii < value.size(); ii++) {
+        if(value[ii] == ' ') {
+            currWriteLen = ii - start;
+
+            if((currLineLen + currWriteLen) >= maxLineLength) {
+                // if(start == prevWordLoc) {
+                //     // hyphenate here.
+                // }
+
+                // word wrap break
+                dest += value.substr(start, prevWordLoc - start) + "\n";
+                dest += std::string(currIndentAmount, ' ');
+                currLineLen = currIndentAmount;
+                currWriteLen = 0;
+                start = prevWordLoc+1;
+            } 
+            else {
+                prevWordLoc = ii;
+            }
+        }
+        else if(value[ii] == '\n') {
+            dest += value.substr(start, ii - start) + "\n";
+            dest += std::string(currIndentAmount, ' ');
+            currLineLen = currIndentAmount;
+            currWriteLen = 0;
+            start = ii+1;
+            ii++; // Jump past the new line.
+        }
+    }
+    
+    // Write any remaining text.
+    std::size_t left = value.size()-start;
+    if((currLineLen + left) >= maxLineLength) {
+        // if(start == prevWordLoc) {
+        //     // hyphenate here.
+        // }
+
+        // word wrap break
+        dest += value.substr(start, prevWordLoc - start) + "\n";
+        dest += std::string(currIndentAmount, ' ');
+        auto lastAmount = value.size()-prevWordLoc-1;
+        dest += value.substr(prevWordLoc+1, lastAmount);
+        currLineLen = currIndentAmount + lastAmount;
+    } 
+    else {
+        dest += value.substr(start, left);
+        currLineLen += left;
+    }
+
+    return currLineLen;
+}
 
 void
 HelpFormatter::optionHelpName(Option const& opt)
@@ -86,49 +156,14 @@ HelpFormatter::appendText(
         bool handleFormatting
     )
 {
-    if(handleFormatting) 
-    {
-        // TODO: Handle max allowed line < curr indent amount
-        // TODO: Handle hyphenating
-
-        std::size_t start = 0;
-        std::size_t prevWordLoc = 0;
-        std::size_t currWriteLen = 0;
-
-        for(std::size_t ii = 0; ii < value.size(); ii++) {
-            if(value[ii] == ' ') {
-                currWriteLen = ii - start;
-
-                if((mCurrLineLength + currWriteLen) >= mMaxLineWidth) {
-                    // if(start == prevWordLoc) {
-                    //     // hyphenate here.
-                    // }
-
-                    // word wrap break
-                    mHelpString += value.substr(start, prevWordLoc - start) + "\n";
-                    mHelpString += std::string(mCurrIndentAmount, ' ');
-                    mCurrLineLength = mCurrIndentAmount;
-                    currWriteLen = 0;
-                    start = prevWordLoc+1;
-                } 
-                else {
-                    prevWordLoc = ii;
-                }
-            }
-            else if(value[ii] == '\n') {
-                mHelpString += value.substr(start, ii - start) + "\n";
-                mHelpString += std::string(mCurrIndentAmount, ' ');
-                mCurrLineLength = mCurrIndentAmount;
-                currWriteLen = 0;
-                start = ii+1;
-                ii++; // Jump past the new line.
-            }
-        }
-        
-        // Write any remaining text.
-        std::size_t left = value.size()-start;
-        mHelpString += value.substr(start, left);
-        mCurrLineLength += left;        
+    if(handleFormatting) {
+        mCurrLineLength = formatAndAppendText(
+                mHelpString, 
+                mCurrLineLength,
+                mCurrIndentAmount,
+                mMaxLineWidth,
+                value
+            );
     } 
     else {
         // For unformatted text, simply append and update the current line length.

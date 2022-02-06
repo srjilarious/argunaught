@@ -63,6 +63,15 @@ namespace background
 } // color
 
 
+//! A helper method that handles word wrapping and formatting like embedded `\n`s.
+std::size_t 
+formatAndAppendText(
+        std::string& dest, 
+        std::size_t currLineLen,
+        std::size_t currIndentAmount,
+        std::size_t maxLineLength,
+        std::string value);
+
 class Parser;
 class Option;
 

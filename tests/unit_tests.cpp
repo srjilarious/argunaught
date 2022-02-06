@@ -283,3 +283,20 @@ TEST_CASE( "Test parsing via deque", "[deque]" ) {
         REQUIRE(parseResult.command->name == "sub");
     }
 }
+
+TEST_CASE( "Test word wrap and formatting helper.", "[utils]" ) {
+
+    SECTION("No wrapping needed should append the original string.") {
+        std::string result;
+        auto lineLen = argunaught::formatAndAppendText(result, 0, 0, 2048, "Hello World");
+        REQUIRE(lineLen == 11);
+        REQUIRE(result == "Hello World");
+    }
+
+    SECTION("Simple wrapping check.") {
+        std::string result;
+        auto lineLen = argunaught::formatAndAppendText(result, 0, 0, 8, "Hello World");
+        REQUIRE(lineLen == 5);
+        REQUIRE(result == "Hello\nWorld");
+    }
+}
