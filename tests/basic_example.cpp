@@ -21,8 +21,9 @@ int main(int argc, const char* argv[])
             {{"test", "t", "An option for fancy"}},
             [&] (const auto& parser, auto optionResults, auto args) -> argunaught::ParseResult
             {
-                auto subParser = argunaught::Parser("Cool Test App - fancy")
-                    .options(parser.options())
+                argunaught::ParserPtr subParser = std::make_shared<argunaught::Parser>("Cool Test App - fancy");
+
+                subParser->options(parser.options())
                     .command("work", "sub parser command!", 
                         {},
                         [&] (auto& subParseResult) -> int 
@@ -36,15 +37,33 @@ int main(int argc, const char* argv[])
                         {
                             printf("Did some different work!\n");
                             return 0;
+                        })
+                    .command("help", "Print fancy's help", 
+                        {},
+                        // Note we capture the shared pointer by value!
+                        [subParser] (auto& subParseResult) -> int 
+                        {
+                            auto helpFormatter = argunaught::DefaultHelpFormatter(*subParser);
+                            auto subHelp = helpFormatter.helpString();
+                            printf("%s", subHelp.c_str());
+                            return 0;
                         });
 
-                return subParser.parse(args, optionResults);
+                auto result = subParser->parse(args, optionResults);
+
+                // Set a default command if none was chosen. `help` in this case.
+                if(!result.hasCommand()) {
+                    result.command = subParser->getCommand("help");
+                }
+
+                return result;
             }
         )
         .group("Transformative", "Magical state changing commands")
             .command("transmogrify", "Changes matter's state",
                 [] (auto& parseResult) -> int 
-                { 
+                {
+                    printf("** Transmogrify!\n");
                     return 0;
                 })
             .command("evocate", "Magical stuff!",
@@ -61,7 +80,16 @@ int main(int argc, const char* argv[])
                     "width of the display the way that word wrapping can.", 0}
                 },
                 [] (auto& parseResult) -> int 
-                { 
+                {
+                    printf("** Evoke");
+                    if(parseResult.hasOption("fire")) {
+                        printf(" FIRE");
+                    }
+                    if(parseResult.hasOption("ice")) {
+                        printf(" ICE");
+                    }
+
+                    printf("!\n");
                     return 0;
                 })
         .endGroup();

@@ -148,10 +148,10 @@ struct DefaultFormatStyle
     std::string optionNameColor = color::foreground::CyanColor;
     std::string optionDashColor = color::foreground::DimCyanColor;
 
-    std::string optionSeparatorColor = color::foreground::CyanColor;
+    std::string optionSeparatorColor = color::foreground::DimCyanColor;
     std::string optionSeparator = ", ";
 
-    std::string separatorColor = color::foreground::GrayColor;
+    std::string separatorColor = color::foreground::DimWhiteColor;
     std::string separator = " - ";
 
     std::string groupDescriptionColor = std::string(color::foreground::ItalicColorMode) + color::foreground::WhiteColor;

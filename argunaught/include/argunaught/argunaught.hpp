@@ -134,8 +134,8 @@ public:
     std::vector<std::string> positionalArgs;
 
     //! Command selected, if any.
-    std::shared_ptr<Command> command;
-
+    CommandPtr command;
+    
     //! List of any errors found during parsing
     std::vector<ParseError> errors;
 
@@ -236,6 +236,7 @@ public:
     Parser& endGroup() { return *mParent; }
 };
 
+
 //! The main parser class that contains sub-parsers, commands, and options to 
 //! aid in parsing a command line.
 class Parser
@@ -290,12 +291,6 @@ public:
     //! Adds a list of options to the parser
     Parser& options(const OptionList& options);
 
-    //! Returns a const reference to the command list defined for this parser.
-    const CommandList& commands() const { return mCommands; }
-
-    //! Returns a const reference to the list of global options defined on this parser.
-    const OptionList& options() const { return mOptions; }
-
     //! Creates a new command group that can have commands or subparsers added to create 
     //! a logical grouping of commands for the program.  Useful for the generation of the help.
     CommandGroup& group(std::string name);
@@ -303,6 +298,15 @@ public:
     //! Creates a new command group that can have commands or subparsers added to create 
     //! a logical grouping of commands for the program.  Useful for the generation of the help.
     CommandGroup& group(std::string name, std::string description);
+
+    //! Returns a const reference to the command list defined for this parser.
+    const CommandList& commands() const { return mCommands; }
+
+    //! Returns a const reference to the list of global options defined on this parser.
+    const OptionList& options() const { return mOptions; }
+
+    //! Looks for a command defined of the parser and returns it, or nullptr if not found.
+    CommandPtr getCommand(std::string name);
 
     //! Parses the command line, given argc and argv from main.
     ParseResult parse(int argc, const char* argv[]) const;

@@ -174,6 +174,19 @@ Parser::parseOption(std::shared_ptr<Command> command,
     return std::nullopt;
 }
 
+CommandPtr 
+Parser::getCommand(std::string name)
+{
+    auto it = std::find_if(mCommands.begin(), mCommands.end(), [&name] (auto& c) {
+        return c->name == name;
+    });
+
+    if(it != mCommands.end()) {
+        return *it;
+    }
+
+    return nullptr;
+}
 
 ParseResult
 Parser::parse(int argc, const char* argv[]) const

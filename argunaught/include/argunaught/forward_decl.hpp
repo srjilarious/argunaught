@@ -16,7 +16,6 @@ struct SubParser;
 class ParseResult;
 class Parser;
 
-
 //! A collection of options found during parsing.
 using OptionResultList = std::vector<OptionResult>;
 
@@ -27,6 +26,9 @@ using CommandHandler = std::function<int (const ParseResult&)>;
 //! parse the remaining positional arguments to allow breaking sets of 
 //! commands into sub groups.
 using SubParserHandler = std::function<ParseResult (const Parser& parent, OptionResultList foundOptions, std::deque<std::string> args)>;
+
+//! Shared pointer to a command object
+using ParserPtr = std::shared_ptr<Parser>;
 
 //! Shared pointer to a command object
 using CommandPtr = std::shared_ptr<Command>;
