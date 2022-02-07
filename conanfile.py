@@ -2,10 +2,10 @@ from conans import ConanFile, CMake
 
 class ArgunaughtConan(ConanFile):
     name = "argunaught"
-    version = "0.5"
+    version = "1.0"
     license = "MIT"
     author = "Jeff DeWall"
-    url = "https://gitlab.com/sr.jilarious/argunaught"
+    url = "https://github.com/srjilarious/argunaught"
     description = "A C++17 argument parser that handles sub commands."
     topics = ("C++17", "argument", "option", "cli")
     settings = "os", "compiler", "build_type", "arch"

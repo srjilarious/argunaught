@@ -178,6 +178,14 @@ HelpFormatter::indent(std::size_t amount)
     appendText(std::string(amount, ' '));
 }
 
+void 
+DefaultHelpFormatter::resetColor()
+{
+    if(mIsTTY) {
+        mHelpString += color::ResetColor;
+    }
+}
+
 void
 DefaultHelpFormatter::generateCommandHelp(
         CommandPtr com, 
@@ -283,24 +291,27 @@ void
 DefaultHelpFormatter::programName(std::string name)
 {
     if(mIsTTY) {
+        resetColor();
         mHelpString += mStyle.programNameColor;
     }
     
     appendText(name);
+    resetColor();
     newLine();
 }
 
 void 
 DefaultHelpFormatter::beginGroup(std::string value)
 {
+    newLine();
 
     if(mIsTTY) {
+        resetColor();
         mHelpString += mStyle.groupNameColor;
     }
     
-    
-    newLine();
     appendText(value + mStyle.groupNameSuffix);
+    resetColor();
     newLine();
 }
 
@@ -315,86 +326,102 @@ DefaultHelpFormatter::commandName(std::string key)
 {
     indent(mStyle.initialIndentLevel);
     if(mIsTTY) {
+        resetColor();
         mHelpString += mStyle.commandNameColor;
     }
     
     appendText(key);
+    resetColor();
 }
 
 void 
 DefaultHelpFormatter::optionName(std::string key)
 {
     if(mIsTTY) {
+        resetColor();
         mHelpString += mStyle.optionNameColor;
     }
     
     appendText(key);
+    resetColor();
 }
 
 void 
 DefaultHelpFormatter::optionDash(bool longDash)
 {
     if(mIsTTY) {
+        resetColor();
         mHelpString += mStyle.optionDashColor;
     }
     
     if(longDash) {
         appendText("--");
-        
     }
     else {
         appendText("-");
     }
+
+    resetColor();
 }
 
 void 
 DefaultHelpFormatter::optionSeperator()
 {
     if(mIsTTY) {
+        resetColor();
         mHelpString += mStyle.optionSeparatorColor;
     }
     
     appendText(mStyle.optionSeparator);
+    resetColor();
 }
 
 void 
 DefaultHelpFormatter::seperator()
 {
     if(mIsTTY) {
+        resetColor();
         mHelpString += mStyle.separatorColor;
     }
     
     appendText(mStyle.separator);
+    resetColor();
 }
 
 void 
 DefaultHelpFormatter::groupDescription(std::string value)
 {
     if(mIsTTY) {
+        resetColor();
         mHelpString += mStyle.groupDescriptionColor;
     }
     
     appendText(value, true);
+    resetColor();
 }
 
 void 
 DefaultHelpFormatter::commandDescription(std::string value)
 {
     if(mIsTTY) {
+        resetColor();
         mHelpString += mStyle.commandDescriptionColor;
     }
     
     appendText(value, true);
+    resetColor();
 }
 
 void 
 DefaultHelpFormatter::optionDescription(std::string value)
 {
     if(mIsTTY) {
+        resetColor();
         mHelpString += mStyle.optionDescriptionColor;
     }
     
     appendText(value, true);
+    resetColor();
 }
 
 std::size_t 
@@ -483,7 +510,7 @@ DefaultHelpFormatter::helpString()
                 mCurrIndentAmount = mStyle.initialIndentLevel;
 
                 groupDescription(group.description);
-                
+
                 newLine();
                 newLine();
             }

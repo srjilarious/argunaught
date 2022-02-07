@@ -9,27 +9,39 @@ namespace argunaught
 
 namespace color
 {
-    constexpr const char ResetColor[]   = "\033[0m";
+    constexpr const char ResetColor[]       = "\033[0m";
 
 namespace foreground
 {
-    constexpr const char BlackColor[]     = "\033[30m";
-    constexpr const char RedColor[]     = "\033[31m";
-    constexpr const char GreenColor[]   = "\033[32m";
-    constexpr const char YellowColor[]  = "\033[33m";
-    constexpr const char BlueColor[]    = "\033[34m";
-    constexpr const char MagentaColor[] = "\033[35m";
-    constexpr const char CyanColor[]    = "\033[36m";
-    constexpr const char WhiteColor[]   = "\033[37m";
+    constexpr const char BlackColor[]       = "\033[30m";
+    constexpr const char RedColor[]         = "\033[31m";
+    constexpr const char GreenColor[]       = "\033[32m";
+    constexpr const char YellowColor[]      = "\033[33m";
+    constexpr const char BlueColor[]        = "\033[34m";
+    constexpr const char MagentaColor[]     = "\033[35m";
+    constexpr const char CyanColor[]        = "\033[36m";
+    constexpr const char WhiteColor[]       = "\033[37m";
+    
+    constexpr const char DimBlackColor[]    = "\033[2;30m";
+    constexpr const char DimRedColor[]      = "\033[2;31m";
+    constexpr const char DimGreenColor[]    = "\033[2;32m";
+    constexpr const char DimYellowColor[]   = "\033[2;33m";
+    constexpr const char DimBlueColor[]     = "\033[2;34m";
+    constexpr const char DimMagentaColor[]  = "\033[2;35m";
+    constexpr const char DimCyanColor[]     = "\033[2;36m";
+    constexpr const char DimWhiteColor[]    = "\033[2;37m";
 
-    constexpr const char GrayColor[]       = "\033[90m";
-    constexpr const char BoldRedColor[]    = "\033[91m";
-    constexpr const char BoldGreenColor[]  = "\033[92m";
-    constexpr const char BoldYellowColor[] = "\033[93m";
-    constexpr const char BoldBlueColor[]   = "\033[94m";
-    constexpr const char BoldMagentaColor[]= "\033[95m";
-    constexpr const char BoldCyanColor[]   = "\033[96m";
-    constexpr const char BoldWhiteColor[]  = "\033[97m";
+    constexpr const char ItalicColorMode[]  = "\033[3m";
+    constexpr const char UnderlineColorMode[]  = "\033[4m";
+
+    constexpr const char GrayColor[]        = "\033[1;90m";
+    constexpr const char BoldRedColor[]     = "\033[1;91m";
+    constexpr const char BoldGreenColor[]   = "\033[1;92m";
+    constexpr const char BoldYellowColor[]  = "\033[1;93m";
+    constexpr const char BoldBlueColor[]    = "\033[1;94m";
+    constexpr const char BoldMagentaColor[] = "\033[1;95m";
+    constexpr const char BoldCyanColor[]    = "\033[1;96m";
+    constexpr const char BoldWhiteColor[]   = "\033[1;97m";
 
     // std::string color256(uint8_t which) {
     //     return std::string("\u001b[38;5;") + std::to_string(which) + "m";
@@ -38,23 +50,23 @@ namespace foreground
 
 namespace background
 {
-    constexpr const char BlackColor[]     = "\033[40m";
-    constexpr const char RedColor[]     = "\033[41m";
-    constexpr const char GreenColor[]   = "\033[42m";
-    constexpr const char YellowColor[]  = "\033[43m";
-    constexpr const char BlueColor[]    = "\033[44m";
-    constexpr const char MagentaColor[] = "\033[45m";
-    constexpr const char CyanColor[]    = "\033[46m";
-    constexpr const char WhiteColor[]   = "\033[47m";
+    constexpr const char BlackColor[]       = "\033[40m";
+    constexpr const char RedColor[]         = "\033[41m";
+    constexpr const char GreenColor[]       = "\033[42m";
+    constexpr const char YellowColor[]      = "\033[43m";
+    constexpr const char BlueColor[]        = "\033[44m";
+    constexpr const char MagentaColor[]     = "\033[45m";
+    constexpr const char CyanColor[]        = "\033[46m";
+    constexpr const char WhiteColor[]       = "\033[47m";
 
-    constexpr const char GrayColor[]       = "\033[40;1m";
-    constexpr const char BoldRedColor[]    = "\033[41;1m";
-    constexpr const char BoldGreenColor[]  = "\033[42;1m";
-    constexpr const char BoldYellowColor[] = "\033[43;1m";
-    constexpr const char BoldBlueColor[]   = "\033[44;1m";
-    constexpr const char BoldMagentaColor[]= "\033[45;1m";
-    constexpr const char BoldCyanColor[]   = "\033[46;1m";
-    constexpr const char BoldWhiteColor[]  = "\033[47;1m";
+    constexpr const char GrayColor[]        = "\033[40;1m";
+    constexpr const char BoldRedColor[]     = "\033[41;1m";
+    constexpr const char BoldGreenColor[]   = "\033[42;1m";
+    constexpr const char BoldYellowColor[]  = "\033[43;1m";
+    constexpr const char BoldBlueColor[]    = "\033[44;1m";
+    constexpr const char BoldMagentaColor[] = "\033[45;1m";
+    constexpr const char BoldCyanColor[]    = "\033[46;1m";
+    constexpr const char BoldWhiteColor[]   = "\033[47;1m";
 
     // std::string color256(uint8_t which) {
     //     return std::string("\u001b[48;5;") + std::to_string(which) + "m";
@@ -129,12 +141,12 @@ struct DefaultFormatStyle
 
     std::string programNameColor = color::foreground::BoldGreenColor;
 
-    std::string groupNameColor = color::foreground::BoldBlueColor;
+    std::string groupNameColor = std::string(color::foreground::UnderlineColorMode) + color::foreground::BlueColor;
     std::string groupNameSuffix = ":";
 
-    std::string commandNameColor = color::foreground::BoldYellowColor;
-    std::string optionNameColor = color::foreground::BoldCyanColor;
-    std::string optionDashColor = color::foreground::CyanColor;
+    std::string commandNameColor = color::foreground::YellowColor;
+    std::string optionNameColor = color::foreground::CyanColor;
+    std::string optionDashColor = color::foreground::DimCyanColor;
 
     std::string optionSeparatorColor = color::foreground::CyanColor;
     std::string optionSeparator = ", ";
@@ -142,7 +154,7 @@ struct DefaultFormatStyle
     std::string separatorColor = color::foreground::GrayColor;
     std::string separator = " - ";
 
-    std::string groupDescriptionColor = color::foreground::BoldWhiteColor;
+    std::string groupDescriptionColor = std::string(color::foreground::ItalicColorMode) + color::foreground::WhiteColor;
     std::string commandDescriptionColor = color::foreground::WhiteColor;
     std::string optionDescriptionColor = color::foreground::WhiteColor;
 };
@@ -161,6 +173,8 @@ protected:
 
     virtual void generateCommandHelp(CommandPtr com, int maxOptComLength);
     virtual void generateSubParserHelp(SubParserPtr com, int maxOptComLength);
+
+    void resetColor();
 
 public:
     DefaultHelpFormatter(Parser& parser, DefaultFormatStyle style = {});
