@@ -4,7 +4,7 @@ A C++ option parser that handles global options, options with parameters, and su
 
 To use argunaught, you create a Parser object and define global options and any subcommands, which can have their own command specific options.
 
-```
+```cpp
 auto args = argunaught::Parser("Cool Test App")
     .options({
         {"gamma", "g", "A global option", 1},
@@ -44,7 +44,7 @@ and can use the returned `ParseResult` to see what options were found, their par
 
 You can check if a subcommand was found, and run it with:
 
-```
+```cpp
 if(parseResult.hasCommand()) {
     parseResult.runCommand();
 }
@@ -54,13 +54,13 @@ The sub-command will be provided the `ParseResult` so it can look at parameters 
 
 You can look at options that were parsed results (including their parameters) in the `ParseResult::options` vector of `OptionResult`s:
 
-```
+```cpp
 parseResult.options[ii];
 ```
 
 Finally, you can also see any positional arguments with:
 
-```
+```cpp
 parseResult.positionalArgs[ii]
 ```
 
@@ -74,7 +74,7 @@ Therefore, positional arguments start once the last option's parameters are full
 
 In some cases, you want to have a top level command as a sematic grouping that leads to its own parsing environment.  This can for example enable `conan` like syntax, where a command like `remote` then has its own sub commands like `list`, `add`, `remove`, etc.
 
-Subparsers are effectively fancy commands that have a different handler function.  During parsing, if a subparser command is found, the parser calls the subparsers handler, letting it return the final `ParseResult`.  It receives any options found so far, a reference to the parent parser to pull in global options in case any show up later and lastly the std::deque of arguments left to parse.
+Subparsers are effectively fancy commands that have a different handler function.  During parsing, if a subparser command is found, the parser calls the subparsers handler, letting it return the final `ParseResult`.  It receives any options found so far, a reference to the parent parser to pull in global options in case any show up later and lastly the `std::deque` of arguments left to parse.
 
 # Printing Help Text
 
@@ -92,7 +92,7 @@ Many times you may have a number of commands that are logically different groups
 
 Look at the example below for how a group can be created using the fluent interface method `Parser::group()`:
 
-```
+```cpp
 auto args = argunaught::Parser("Cool Test App", "-=# Amazing app Version 1.0 #=-")
     .options({
         {"gamma", "g", "A global option", 1},
@@ -146,7 +146,7 @@ New line charaters are also formatted and indentation handled correctly in descr
 
 The parser setup in `basic_example` shows off all of the features of argunaught.  It contains global options, commands, grouped commands, and a subparser.  The definition of that parser looks like:
 
-```
+```cpp
 auto args = argunaught::Parser("Cool Test App", "-=# Amazing app Version 1.0 #=-")
     .options({
         {"gamma", "g", "A global option", 1},
@@ -238,3 +238,7 @@ auto args = argunaught::Parser("Cool Test App", "-=# Amazing app Version 1.0 #=-
 ```
 
 One key point in using subparsers, is that you will want to create a shared pointer to the new parser and capture it by value in a command handler so that the parser can continue to exist once the sub parser handler returns.  If you create a parser as a normal object it will fall out of scope once the subparser handler returns and you can get a segfault.
+
+The above parser's help text will look like:
+
+![Full Help Text Example](images/basic_example_help_text.png)
