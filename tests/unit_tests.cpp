@@ -82,7 +82,10 @@ TEST_CASE( "Test positional args", "[options]" ) {
         
         REQUIRE(parseResult.hasOption("gamma") == true);
 
-        auto gammaOptVal = parseResult.getOption("gamma").value();
+        auto gammaOpt = parseResult.getOption("gamma");
+        REQUIRE(gammaOpt != std::nullopt);
+
+        auto gammaOptVal = gammaOpt.value();
         REQUIRE(gammaOptVal.optionName == "gamma");
         REQUIRE(gammaOptVal.values.size() == 0);
 

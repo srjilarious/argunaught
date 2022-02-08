@@ -1,4 +1,4 @@
-// Set of tests, blocking out how I want the API to look.
+// A larger example, showing options, commands, subparsers and command groups.
 
 #include <argunaught/argunaught.hpp>
 #include <stdio.h>

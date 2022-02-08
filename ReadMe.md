@@ -1,8 +1,14 @@
 A C++ option parser that handles global options, options with parameters, and sub-commands with command specific options as well.
 
+Here's an example of help text showing all the features of the library:
+
+![Full Help Text Example](images/larger_example_help_text.png)
+
 # Quick Example
 
 To use argunaught, you create a Parser object and define global options and any subcommands, which can have their own command specific options.
+
+![Full Help Text Example](images/quick_example_help_text.png)
 
 ```cpp
 auto args = argunaught::Parser("Cool Test App")
@@ -24,9 +30,7 @@ auto args = argunaught::Parser("Cool Test App")
             {"alpha", "a", "cool option", -1},
             {"beta", "b", "cool other option", 2}
         },
-        [] (auto& parseResult) -> int 
-        { 
-            /*argunaught::opt("h", "help")*/ 
+        [] (auto& parseResult) -> int {
             return 0;
         } 
     );
@@ -40,7 +44,37 @@ auto parseResult = args.parse(argc, argv);
 
 and can use the returned `ParseResult` to see what options were found, their parameters, if any subcommand was used and also get any positional arguments.
 
-## Running a sub-command
+## Checking for Options and Positional Arguments
+
+You can look at all of the options that were parsed (including their parameters) in the `ParseResult::options` vector of `OptionResult`s:
+
+```cpp
+parseResult.options[ii];
+```
+
+or if you want to just check if an option was parsed:
+
+```cpp
+parseResult.hasOption("long name here.");
+```
+
+If you need to get the parameters for a particular option, there is also a helper method `ParseResult::getOption`:
+
+```cpp
+auto optOpt = parseResult.getOption();
+if(optOpt != std::nullopt) {
+    auto optResult = optOpt.value();
+}
+```
+
+Finally, you can also see any positional arguments with:
+
+```cpp
+parseResult.positionalArgs[ii]
+```
+
+
+## Running a Subcommand
 
 You can check if a subcommand was found, and run it with:
 
@@ -52,17 +86,6 @@ if(parseResult.hasCommand()) {
 
 The sub-command will be provided the `ParseResult` so it can look at parameters and options on its own.  It will contain any global options found as well as any command specific options that were found.
 
-You can look at options that were parsed results (including their parameters) in the `ParseResult::options` vector of `OptionResult`s:
-
-```cpp
-parseResult.options[ii];
-```
-
-Finally, you can also see any positional arguments with:
-
-```cpp
-parseResult.positionalArgs[ii]
-```
 
 ## Option paramters
 
@@ -144,7 +167,7 @@ New line charaters are also formatted and indentation handled correctly in descr
 
 # A larger example
 
-The parser setup in `basic_example` shows off all of the features of argunaught.  It contains global options, commands, grouped commands, and a subparser.  The definition of that parser looks like:
+The parser setup in `larger_example` shows off all of the features of argunaught.  It contains global options, commands, grouped commands, and a subparser.  The definition of that parser looks like:
 
 ```cpp
 auto args = argunaught::Parser("Cool Test App", "-=# Amazing app Version 1.0 #=-")
@@ -241,4 +264,4 @@ One key point in using subparsers, is that you will want to create a shared poin
 
 The above parser's help text will look like:
 
-![Full Help Text Example](images/basic_example_help_text.png)
+![Full Help Text Example](images/larger_example_help_text.png)
