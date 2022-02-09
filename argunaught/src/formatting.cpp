@@ -85,15 +85,21 @@ formatAndAppendText(
         }
 
         if((currLineLen + ii - start) >= maxLineLength) {
-            // if(start == prevWordLoc) {
-            //     // hyphenate here.
-            // }
-
-            // word wrap break
-            dest += value.substr(start, prevWordLoc - start) + "\n";
-            dest += std::string(currIndentAmount, ' ');
-            currLineLen = currIndentAmount;
-            start = prevWordLoc+1;
+            if(start >= prevWordLoc) {
+                // hyphenate here.
+                dest += value.substr(start, ii - 1 - start) + "-\n";
+                dest += std::string(currIndentAmount, ' ');
+                currLineLen = currIndentAmount;
+                start = ii-1;
+                prevWordLoc = start;
+            }
+            else {
+                // word wrap break
+                dest += value.substr(start, prevWordLoc - start) + "\n";
+                dest += std::string(currIndentAmount, ' ');
+                currLineLen = currIndentAmount;
+                start = prevWordLoc+1;
+            }
         } 
     }
     

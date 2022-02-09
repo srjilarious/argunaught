@@ -77,7 +77,9 @@ int main(int argc, const char* argv[])
                     "is smaller than the amount of space needed to show "
                     "the description.  Embedding a '\\n' is possible to "
                     "make line breaks, but it won't wrap properly to the "
-                    "width of the display the way that word wrapping can.", 0}
+                    "width of the display the way that word wrapping can."
+                    "It_will_also_hyphenate_a_line_without_spaces_and_"
+                    "perform_sane_wrapping_on_that really long word.", 0}
                 },
                 [] (auto& parseResult) -> int 
                 {
