@@ -153,6 +153,7 @@ TEST_CASE( "Test sub parsers", "[subparser]" ) {
 
 TEST_CASE( "Test sub-command parsers", "[sub-commands]" ) {
     int counter = 0;
+    std::string help = "";
     auto argu = argunaught::Parser("Cool Test App")
         .options(
             {{"global", "g", "A global option", 0}}
@@ -162,24 +163,34 @@ TEST_CASE( "Test sub-command parsers", "[sub-commands]" ) {
                 {"com1", "c", "A command option", 0},
                 {"com2", "", "Another command option", 2},
             },
-            [&counter] (auto& parseResult) -> int 
+            [&counter, &help] (auto& parseResult) -> int 
             { 
                 // Build up a new parser for the sub command with separate options,
                 // but inheriting the parent parser options list.
                 // TODO: implement.
-                auto subParser = argunaught::Parser("Cool Test App - sub")
-                    .options(
+                argunaught::ParserPtr subParser = std::make_shared<argunaught::Parser>("Cool Test App - sub");
+                    subParser->options(
                         {{"test", "t", "A sub parser global option", 0}}
                     )
                     .command("work", "Unit test sub-command", 
                         {},
-                        [&] (auto& subParseResult) -> int 
+                        [subParser, &counter, &help] (auto& subParseResult) -> int 
                         {
                             counter = 200;
                             return 0;
+                        })
+                    .command("help", "Print help for sub-command", 
+                        {},
+                        [subParser, &counter, &help] (auto& subParseResult) -> int
+                        {
+                            counter = 300;
+                            argunaught::DefaultFormatStyle style{};
+                            auto helpFormatter = argunaught::DefaultHelpFormatter(*subParser, style, true);
+                            help = helpFormatter.helpString();
+                            return 0;
                         });
 
-                auto subResult = subParser.parse(parseResult);
+                auto subResult = subParser->parse(parseResult);
                 subResult.runCommand();
                 return 0;
             });
@@ -211,6 +222,33 @@ TEST_CASE( "Test sub-command parsers", "[sub-commands]" ) {
         // The work sub command will set the counter variable to 200.
         parseResult.runCommand();
         REQUIRE(counter == 200);
+    }
+
+    SECTION("Should be able to generate sub parser help") {
+        std::deque<std::string> args = {"sub", "help"};
+        auto parseResult = argu.parse(args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.hasCommand());
+
+        // This will run the command which runs its own sub parser.
+        // The work sub command will set the counter variable to 200.
+        parseResult.runCommand();
+        REQUIRE(counter == 300);
+        std::string expectedHelp = 
+R"(Cool Test App - sub
+
+Global Options:
+    --test, -t           - A sub parser global option
+    --global, -g         - A global option
+    --com1, -c           - A command option
+    --com2               - Another command option
+
+Commands:
+    work                 - Unit test sub-command
+    help                 - Print help for sub-command
+
+)";
+        REQUIRE(help == expectedHelp);
     }
 }
 

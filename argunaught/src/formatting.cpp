@@ -277,13 +277,19 @@ DefaultHelpFormatter::generateSubParserHelp(
 
 DefaultHelpFormatter::DefaultHelpFormatter(
         Parser& parser,
-        DefaultFormatStyle style
+        DefaultFormatStyle style,
+        bool forceNoColor
     )
     : mParser(parser),
       mStyle(style)
 {
     mMaxOptComLength = std::max(findMaxOptComLength(parser, style.spacesPerIndentLevel), style.maxJustified);
-    mIsTTY = isatty(fileno(stdout)) != 0;
+    if(forceNoColor) {
+        mIsTTY = false;
+    }
+    else {
+        mIsTTY = isatty(fileno(stdout)) != 0;
+    }
     mMaxLineWidth = std::min(style.maxLineLength, displayWidth()-1);
 }
 

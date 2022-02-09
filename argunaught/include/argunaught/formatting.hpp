@@ -177,7 +177,7 @@ protected:
     void resetColor();
 
 public:
-    DefaultHelpFormatter(Parser& parser, DefaultFormatStyle style = {});
+    DefaultHelpFormatter(Parser& parser, DefaultFormatStyle style = {}, bool forceNoColor=false);
 
     void programName(std::string name) override;
 
