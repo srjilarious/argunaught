@@ -123,6 +123,9 @@ protected:
     virtual void commandDescription(std::string value) = 0;
     virtual void optionDescription(std::string value) = 0;
 
+    virtual void programDescription(std::string value) = 0;
+    virtual void programUsage(std::string value) = 0;
+
 public:
     virtual std::string helpString() = 0;;
 };
@@ -154,6 +157,9 @@ struct DefaultFormatStyle
     std::string separatorColor = color::foreground::DimWhiteColor;
     std::string separator = " - ";
 
+    std::string programDescriptionColor = std::string(color::foreground::ItalicColorMode) + color::foreground::WhiteColor;
+    std::string programUsageColor = color::foreground::BoldWhiteColor;
+    
     std::string groupDescriptionColor = std::string(color::foreground::ItalicColorMode) + color::foreground::WhiteColor;
     std::string commandDescriptionColor = color::foreground::WhiteColor;
     std::string optionDescriptionColor = color::foreground::WhiteColor;
@@ -194,6 +200,9 @@ public:
     void groupDescription(std::string value) override;
     void commandDescription(std::string value) override;
     void optionDescription(std::string value) override;
+
+    void programDescription(std::string value) override;
+    void programUsage(std::string value) override;
 
     std::string helpString() override;
 };

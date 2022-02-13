@@ -6,6 +6,10 @@
 int main(int argc, const char* argv[])
 {
     auto args = argunaught::Parser("Cool Test App", "-=# Amazing app Version 1.0 #=-")
+        .description("A larger example application showing off the various features "
+                     "available in the argunaught library.")
+        .usage("Usage:\n"
+               "larger_example [options] [command] [any positional arugments]")
         .options({
             {"gamma", "g", "A global option", 1},
             {"delta", "d", "Another global option\nAnd the description\nspans many\nlines....", 0}

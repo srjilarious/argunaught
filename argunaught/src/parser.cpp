@@ -8,6 +8,21 @@ Parser::Parser(std::string name, std::string banner)
 {
 }
 
+
+Parser& 
+Parser::description(std::string d) 
+{ 
+    mDescription = d;
+    return *this;
+}
+
+Parser& 
+Parser::usage(std::string u) 
+{ 
+    mUsage = u;
+    return *this;
+}
+
 Parser& 
 Parser::subParser(
         std::string name, 

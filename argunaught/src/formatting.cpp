@@ -401,6 +401,33 @@ DefaultHelpFormatter::seperator()
 }
 
 void 
+DefaultHelpFormatter::programDescription(std::string value)
+{
+    if(mIsTTY) {
+        resetColor();
+        mHelpString += mStyle.programDescriptionColor;
+    }
+    
+    appendText(value, true);
+    newLine();
+    newLine();
+    resetColor();
+}
+
+void 
+DefaultHelpFormatter::programUsage(std::string value)
+{
+    if(mIsTTY) {
+        resetColor();
+        mHelpString += mStyle.programUsageColor;
+    }
+    
+    appendText(value, true);
+    newLine();
+    resetColor();
+}
+
+void 
 DefaultHelpFormatter::groupDescription(std::string value)
 {
     if(mIsTTY) {
@@ -476,6 +503,14 @@ DefaultHelpFormatter::helpString()
     }
     else {
         programName(mParser.mName);
+    }
+
+    if(mParser.mDescription != "") {
+        programDescription(mParser.mDescription);
+    }
+
+    if(mParser.mUsage != "") {
+        programUsage(mParser.mUsage);
     }
 
     // Now build up the help string.

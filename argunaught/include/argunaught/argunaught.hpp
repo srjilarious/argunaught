@@ -251,6 +251,12 @@ private:
     //! A special banner to use instead of the program name in help text generation.
     std::string mBanner;
 
+    //! A program description printed after the name/banner
+    std::string mDescription;
+    
+    //! Usage text to show in help after the description
+    std::string mUsage;
+
     //! A list of commands that can be parsed
     CommandList mCommands;
 
@@ -272,6 +278,12 @@ private:
 
 public:
     Parser(std::string programName, std::string banner = "");
+
+    //! Sets the parser's description text.
+    Parser& description(std::string d);
+    
+    //! Sets the parer's usage text.
+    Parser& usage(std::string u);
 
     //! Creates a command in the parser.
     Parser& command(std::string name, std::string help, CommandHandler func);
