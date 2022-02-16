@@ -250,6 +250,35 @@ Commands:
 )";
         REQUIRE(help == expectedHelp);
     }
+
+}
+
+TEST_CASE( "Test help without global options", "[help]" ) {
+
+    auto argu = argunaught::Parser("Cool Test App")
+        .command("sub", "Unit test sub-command", 
+            {
+                {"com1", "c", "A command option", 0},
+                {"com2", "", "Another command option", 2},
+            },
+            [] (auto& args) -> int { return 0; });
+
+    SECTION("Should be able to generate help without global options") {
+        
+        argunaught::DefaultFormatStyle style{};
+        auto helpFormatter = argunaught::DefaultHelpFormatter(argu, style, true);
+        auto help = helpFormatter.helpString();
+        std::string expectedHelp = 
+R"(Cool Test App
+
+Commands:
+    sub                  - Unit test sub-command
+      --com1, -c         - A command option
+      --com2             - Another command option
+
+)";
+        REQUIRE(help == expectedHelp);
+    }
 }
 
 

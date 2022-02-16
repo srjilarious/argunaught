@@ -514,24 +514,27 @@ DefaultHelpFormatter::helpString()
     }
 
     // Now build up the help string.
-    beginGroup("Global Options");
-    for(auto opt : mParser.mOptions.values()) {
-        indent(mStyle.initialIndentLevel);
-        optionHelpName(opt);
-        auto optLen = optionHelpNameLength(opt);
+    if( mParser.mOptions.values().size() > 0 )
+    {
+        beginGroup("Global Options");
+        for(auto opt : mParser.mOptions.values()) {
+            indent(mStyle.initialIndentLevel);
+            optionHelpName(opt);
+            auto optLen = optionHelpNameLength(opt);
 
-        // Justify the description.
-        if(optLen < mMaxOptComLength) {
-            indent(mMaxOptComLength - optLen);
+            // Justify the description.
+            if(optLen < mMaxOptComLength) {
+                indent(mMaxOptComLength - optLen);
+            }
+
+            if(opt.description != "") {
+                mCurrIndentAmount = mMaxOptComLength + mStyle.initialIndentLevel + mStyle.separator.size();
+                seperator();
+                optionDescription(opt.description);
+            }
+
+            newLine();
         }
-
-        if(opt.description != "") {
-            mCurrIndentAmount = mMaxOptComLength + mStyle.initialIndentLevel + mStyle.separator.size();
-            seperator();
-            optionDescription(opt.description);
-        }
-
-        newLine();
     }
 
     if( mParser.mCommands.size() > 0 )
