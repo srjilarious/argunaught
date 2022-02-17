@@ -157,7 +157,7 @@ auto formatter = argunaught::DefaultHelpFormatter(args);
 std::cout << formatter.helpString();
 ```
 
-`Parser::group()` creates a new group with the parser with a name and optionally a description.  It returns a reference to the `CommandGroup` so that commands can be added to it.  To end the group, call `CommandGroup::endGroup` fluent method which just returns the parent `Parser` so that more global commands or options can be added.
+`Parser::group()` creates a new group in the parser with a name and, optionally, a description.  It returns a reference to the `CommandGroup` so that commands can be added to it.  To end the group, call `CommandGroup::endGroup` fluent method which just returns the parent `Parser` reference so that more global commands or options can be added.
 
 ## Description Formatting
 

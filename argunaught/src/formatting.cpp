@@ -410,7 +410,6 @@ DefaultHelpFormatter::programDescription(std::string value)
     
     appendText(value, true);
     newLine();
-    newLine();
     resetColor();
 }
 
