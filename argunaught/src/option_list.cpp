@@ -16,20 +16,36 @@ OptionList::OptionList(const OptionList& opts)
 {
 }
 
-OptionError 
+ParserConfigErrorType 
 OptionList::addOption(Option opt)
 {
-    // FIX: Currently no duplicate checks.
+    if(opt.longName == "") {
+        return ParserConfigErrorType::LongOptionNameMissing;
+    }
+
+    for(auto& el : mOptions) {
+        if(opt.longName == el.longName ||
+           opt.shortName == el.shortName) {
+            return ParserConfigErrorType::DuplicateOption;
+        }
+    }
+
     mOptions.push_back(opt);
-    return OptionError::None;
+    return ParserConfigErrorType::NoError;
 }
 
-OptionError 
+ParserConfigErrorType 
 OptionList::addOptions(const OptionList& opts)
 {
-    // FIX: Currently no duplicate checks.
-    mOptions.insert(mOptions.end(), opts.mOptions.begin(), opts.mOptions.end());
-    return OptionError::None;
+    for(auto& el : opts.mOptions) {
+        auto res = addOption(el);
+        if(res != ParserConfigErrorType::NoError) {
+            // Error out on first issue
+            return res;
+        }
+    }
+
+    return ParserConfigErrorType::NoError;
 }
 
 std::optional<Option> 

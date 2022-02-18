@@ -5,6 +5,25 @@
 
 #include <argunaught/argunaught.hpp>
 
+TEST_CASE( "Test various option conditions", "[options]" ) {
+    SECTION( "An option must have long name" ) {
+        auto argu = argunaught::Parser("Cool Test App")
+            .options({
+                {"", "g", "A global option", 1},
+                {"delta", "d", "Another global option", 0}
+            });
+
+        // TODO: Add error checks to parser itself?
+        REQUIRE(argu.hasConfigurationError());
+        auto errors = argu.parserConfigErrors();
+        REQUIRE(errors.size() == 1);
+        REQUIRE(errors[0].type == argunaught::ParserConfigErrorType::LongOptionNameMissing);
+        auto expectedMessage = 
+                "Error adding option [LongOptionNameMissing]: "
+                "'--', '-g', numParams=1, description='A global option'";
+        REQUIRE(errors[0].message == expectedMessage);
+    }
+}
 TEST_CASE( "Test global options only", "[options]" ) {
     auto argu = argunaught::Parser("Cool Test App")
         .options({

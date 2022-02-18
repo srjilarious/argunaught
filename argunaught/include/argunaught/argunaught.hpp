@@ -22,17 +22,30 @@ namespace argunaught
 #define ARGUNAUGHT_TRACE(msg, ...) 
 #endif
 
+//! An enum of errors checked for during parser configuration.
+enum class ParserConfigErrorType
+{
+    NoError,
+    LongOptionNameMissing,
+    DuplicateOption,
+    CommandNameMissing,
+    CommandGroupNameMissing,
+};
+
+//! A structure for capturing information about parser configuration errors.
+struct ParserConfigError
+{
+    //! The type of parser configuration error found
+    ParserConfigErrorType type;
+
+    //! Information about the configuration error
+    std::string message;
+};
+
 //! An enum of errors checked for during parsing.
 enum class ParseErrorType
 {
     UnknownOption,
-};
-
-//! An enum of errors checked for during option parsing
-enum class OptionError
-{
-    None,
-    OptionAlreadyExists
 };
 
 //! Information about errors caught while parsing the command line with the
@@ -96,13 +109,13 @@ public:
     OptionList(const OptionList& opts);
 
     //! Adds an option to the list of supported options
-    OptionError addOption(Option opt);
+    ParserConfigErrorType addOption(Option opt);
 
     //! Adds an existing option list to this one
     //
     //! Note: No duplicates are checked for, so any existing options 
     //!       in this list will end up taking precedence.
-    OptionError addOptions(const OptionList& opts);
+    ParserConfigErrorType addOptions(const OptionList& opts);
 
     //! Looks for an option based on its short name
     std::optional<Option> findShortOption(std::string optionName) const;
@@ -269,6 +282,9 @@ private:
     //! Any grouped commands
     std::vector<CommandGroup> mGroups;
 
+    //! Any parser configuration errors found
+    std::vector<ParserConfigError> mConfigErrors;
+
     //! Helper method to parse an option, handling potentially command specific options
     //! modifying the deque of command line tokens and adding results to the parseResult.
     std::optional<OptionResult> parseOption(
@@ -329,6 +345,12 @@ public:
     //! Allows performing sub command parsing using options from previous 
     //! parser call.
     ParseResult parse(ParseResult const& prevParseResult);
+
+    //! Returns if a parser configuration error was found.
+    bool hasConfigurationError() const { return mConfigErrors.size() > 0; }
+
+    //! Returns the list of parser configuration errors found, if any.
+    std::vector<ParserConfigError> parserConfigErrors() const { return mConfigErrors; }
 };
 
 }

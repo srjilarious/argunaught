@@ -3,6 +3,34 @@
 namespace argunaught
 {
 
+namespace
+{
+
+std::string
+getParserConfigErrorName(ParserConfigErrorType type)
+{
+    switch(type)
+    {
+        case ParserConfigErrorType::LongOptionNameMissing:
+            return "LongOptionNameMissing";
+
+        case ParserConfigErrorType::DuplicateOption:
+            return "DuplicateOption";
+
+        case ParserConfigErrorType::CommandNameMissing:
+            return "CommandNameMissing";
+        
+        case ParserConfigErrorType::CommandGroupNameMissing:
+            return "CommandGroupNameMissing";
+
+        default:
+            return "UnknownError";
+    }
+}
+
+}
+
+
 Parser::Parser(std::string name, std::string banner)
     : mName(name), mBanner(banner)
 {
@@ -74,7 +102,17 @@ Parser::options(
     )
 {
     for(auto opt : options) {
-        mOptions.addOption(opt);
+        auto res = mOptions.addOption(opt);
+        if(res != ParserConfigErrorType::NoError) {
+            mConfigErrors.push_back({
+                res,
+                "Error adding option [" + getParserConfigErrorName(res) + "]:"
+                " '--" + opt.longName + "',"
+                " '-" + opt.shortName + "'," 
+                " numParams=" + std::to_string(opt.maxNumParams) + ","
+                " description='" + opt.description + "'"
+            });
+        }
     }
     return *this;
 }
