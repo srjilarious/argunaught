@@ -80,8 +80,7 @@ Parser::command(
         CommandHandler func)//,
         // bool handlesSubParsers)
 {
-    mCommands.push_back(std::shared_ptr<Command>(new Command(name, help, {}, func)));
-    return *this;    
+    return command(name, help, {}, func);
 }
 
 Parser& 
@@ -92,7 +91,18 @@ Parser::command(
         CommandHandler func
     )
 {
-    mCommands.push_back(std::make_shared<Command>(name, help, options, func));
+    if(name == "") {
+        auto err = ParserConfigErrorType::CommandNameMissing;
+        mConfigErrors.push_back({
+            err,
+            "Error adding command [" + getParserConfigErrorName(err) + "]:"
+            " description='" + help + "'"
+        });
+    }
+    else {
+        mCommands.push_back(std::make_shared<Command>(name, help, options, func));
+    }
+
     return *this;
 }
 

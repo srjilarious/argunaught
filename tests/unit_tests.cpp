@@ -23,7 +23,34 @@ TEST_CASE( "Test various option conditions", "[options]" ) {
                 "'--', '-g', numParams=1, description='A global option'";
         REQUIRE(errors[0].message == expectedMessage);
     }
+
+    SECTION( "A command must have a name" ) {
+        auto argu = argunaught::Parser("Cool Test App")
+            .options({
+                {"delta", "d", "Another global option", 0}
+            })
+            .command("", "Unit test sub-command", 
+                { /* No options */ },
+                [] (auto& parseResult) -> int 
+                {
+                    return 0;
+                }
+            );
+            
+
+        // TODO: Add error checks to parser itself?
+        REQUIRE(argu.hasConfigurationError());
+        auto errors = argu.parserConfigErrors();
+        REQUIRE(errors.size() == 1);
+        REQUIRE(errors[0].type == argunaught::ParserConfigErrorType::CommandNameMissing);
+        auto expectedMessage = 
+                "Error adding command [CommandNameMissing]: "
+                "description='Unit test sub-command'";
+        REQUIRE(errors[0].message == expectedMessage);
+    }
 }
+
+
 TEST_CASE( "Test global options only", "[options]" ) {
     auto argu = argunaught::Parser("Cool Test App")
         .options({
