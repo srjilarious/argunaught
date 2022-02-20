@@ -60,8 +60,7 @@ Parser::subParser(
         std::string help, 
         SubParserHandler func)
 {
-    mSubParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, {}, func)));
-    return *this; 
+    return subParser(name, help, {}, func);
 }
 
 Parser& 
@@ -72,6 +71,32 @@ Parser::subParser(
         SubParserHandler func
     )
 {
+    // Check for a missing command name.
+    if(name == "") {
+        auto err = ParserConfigErrorType::CommandNameMissing;
+        mConfigErrors.push_back({
+            err,
+            "Error adding subparser [" + getParserConfigErrorName(err) + "]:"
+            " description='" + help + "'"
+        });
+
+        return *this;
+    }
+    
+    // Check for a duplicate command name
+    auto exists = checkCommandNameExists(name);
+    if(exists) {
+        auto err = ParserConfigErrorType::DuplicateCommandName;
+        mConfigErrors.push_back({
+            err,
+            "Error adding subparser [" + getParserConfigErrorName(err) + "]:"
+            " name='" + name + "',"
+            " description='" + help + "'"
+        });
+
+        return *this;
+    }
+
     mSubParsers.push_back(std::shared_ptr<SubParser>(new SubParser(name, help, options, func)));
     return *this; 
 }
