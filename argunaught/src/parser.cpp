@@ -19,6 +19,9 @@ getParserConfigErrorName(ParserConfigErrorType type)
 
         case ParserConfigErrorType::CommandNameMissing:
             return "CommandNameMissing";
+
+        case ParserConfigErrorType::DuplicateCommandName:
+            return "DuplicateCommandName";
         
         case ParserConfigErrorType::CommandGroupNameMissing:
             return "CommandGroupNameMissing";
@@ -91,6 +94,7 @@ Parser::command(
         CommandHandler func
     )
 {
+    // Check for a missing command name.
     if(name == "") {
         auto err = ParserConfigErrorType::CommandNameMissing;
         mConfigErrors.push_back({
@@ -98,11 +102,25 @@ Parser::command(
             "Error adding command [" + getParserConfigErrorName(err) + "]:"
             " description='" + help + "'"
         });
+
+        return *this;
     }
-    else {
-        mCommands.push_back(std::make_shared<Command>(name, help, options, func));
+    
+    // Check for a duplicate command name
+    auto exists = checkCommandNameExists(name);
+    if(exists) {
+        auto err = ParserConfigErrorType::DuplicateCommandName;
+        mConfigErrors.push_back({
+            err,
+            "Error adding command [" + getParserConfigErrorName(err) + "]:"
+            " name='" + name + "',"
+            " description='" + help + "'"
+        });
+
+        return *this;
     }
 
+    mCommands.push_back(std::make_shared<Command>(name, help, options, func));
     return *this;
 }
 
@@ -147,6 +165,31 @@ Parser::group(std::string name, std::string description)
 {
     mGroups.push_back(CommandGroup(this, name, description));
     return *(mGroups.end()-1);
+}
+
+
+bool 
+Parser::checkCommandNameExists(std::string name) const
+{
+    // First check if the name exists in the command list.
+    auto comit = std::find_if(mCommands.begin(), mCommands.end(), [&name] (auto& el) {
+        return el->name == name;
+    });
+
+    if(comit != mCommands.end()) {
+        return true;
+    }
+
+    // Also need to check sub parsers which are just fancy commands.
+    auto spit = std::find_if(mSubParsers.begin(), mSubParsers.end(), [&name] (auto& el) {
+        return el->name == name;
+    });
+
+    if(spit != mSubParsers.end()) {
+        return true;
+    }
+
+    return false;
 }
 
 

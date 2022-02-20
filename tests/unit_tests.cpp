@@ -48,6 +48,71 @@ TEST_CASE( "Test various option conditions", "[options]" ) {
                 "description='Unit test sub-command'";
         REQUIRE(errors[0].message == expectedMessage);
     }
+
+    SECTION( "A command can't be a duplicate" ) {
+        auto argu = argunaught::Parser("Cool Test App")
+            .options({
+                {"delta", "d", "Another global option", 0}
+            })
+            .command("sub", "Unit test sub-command", 
+                { },
+                [] (auto& parseResult) -> int 
+                {
+                    return 0;
+                }
+            )
+            .command("sub", "A duplicate unit test sub-command", 
+                { },
+                [] (auto& parseResult) -> int 
+                {
+                    return 1;
+                }
+            );
+            
+
+        // TODO: Add error checks to parser itself?
+        REQUIRE(argu.hasConfigurationError());
+        auto errors = argu.parserConfigErrors();
+        REQUIRE(errors.size() == 1);
+        REQUIRE(errors[0].type == argunaught::ParserConfigErrorType::DuplicateCommandName);
+        auto expectedMessage = 
+                "Error adding command [DuplicateCommandName]: "
+                "name='sub', "
+                "description='A duplicate unit test sub-command'";
+        REQUIRE(errors[0].message == expectedMessage);
+    }
+
+    SECTION( "A command can't be a duplicate with subarsers" ) {
+        auto argu = argunaught::Parser("Cool Test App")
+            .options({
+                {"delta", "d", "Another global option", 0}
+            })
+            .subParser("sub", "My fancy sub parser",
+                [] (const auto& parser, auto optionResults, auto args) -> argunaught::ParseResult
+                {
+                    return argunaught::ParseResult{};
+                }
+            )
+            .command("sub", "Unit test sub-command clashes with subparser!", 
+                { },
+                [] (auto& parseResult) -> int 
+                {
+                    return 0;
+                }
+            );
+            
+
+        // TODO: Add error checks to parser itself?
+        REQUIRE(argu.hasConfigurationError());
+        auto errors = argu.parserConfigErrors();
+        REQUIRE(errors.size() == 1);
+        REQUIRE(errors[0].type == argunaught::ParserConfigErrorType::DuplicateCommandName);
+        auto expectedMessage = 
+                "Error adding command [DuplicateCommandName]: "
+                "name='sub', "
+                "description='Unit test sub-command clashes with subparser!'";
+        REQUIRE(errors[0].message == expectedMessage);
+    }
 }
 
 

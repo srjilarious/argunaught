@@ -29,6 +29,7 @@ enum class ParserConfigErrorType
     LongOptionNameMissing,
     DuplicateOption,
     CommandNameMissing,
+    DuplicateCommandName,
     CommandGroupNameMissing,
 };
 
@@ -291,6 +292,9 @@ private:
             std::shared_ptr<Command> command, 
             std::deque<std::string>& parseText,
             ParseResult& parseResult) const;
+
+    //! Checks if a command or subparser name has already been registered with the parser.
+    bool checkCommandNameExists(std::string name) const;
 
 public:
     Parser(std::string programName, std::string banner = "");
