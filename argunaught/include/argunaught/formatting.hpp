@@ -31,6 +31,8 @@ namespace foreground
     constexpr const char DimCyanColor[]     = "\033[2;36m";
     constexpr const char DimWhiteColor[]    = "\033[2;37m";
 
+    constexpr const char BoldColorMode[]    = "\033[1m";
+    constexpr const char DimColorMode[]     = "\033[2m";
     constexpr const char ItalicColorMode[]  = "\033[3m";
     constexpr const char UnderlineColorMode[]  = "\033[4m";
 
@@ -154,15 +156,15 @@ struct DefaultFormatStyle
     std::string optionSeparatorColor = color::foreground::DimCyanColor;
     std::string optionSeparator = ", ";
 
-    std::string separatorColor = color::foreground::DimWhiteColor;
+    std::string separatorColor = color::foreground::DimColorMode;
     std::string separator = " - ";
 
-    std::string programDescriptionColor = std::string(color::foreground::ItalicColorMode) + color::foreground::WhiteColor;
-    std::string programUsageColor = color::foreground::BoldWhiteColor;
+    std::string programDescriptionColor = std::string(color::ResetColor) + color::foreground::ItalicColorMode;
+    std::string programUsageColor = std::string(color::ResetColor) + color::foreground::BoldColorMode;
     
-    std::string groupDescriptionColor = std::string(color::foreground::ItalicColorMode) + color::foreground::WhiteColor;
-    std::string commandDescriptionColor = color::foreground::WhiteColor;
-    std::string optionDescriptionColor = color::foreground::WhiteColor;
+    std::string groupDescriptionColor = std::string(color::ResetColor) + color::foreground::ItalicColorMode;
+    std::string commandDescriptionColor = color::ResetColor;
+    std::string optionDescriptionColor = color::ResetColor;
 };
 
 //! Default help formatter using ANSI color sequences if stdout is a tty.
