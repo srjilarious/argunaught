@@ -236,6 +236,8 @@ Parser::parseOption(std::shared_ptr<Command> command,
        optionFullName == "--") 
     {
            parseText.pop_front();
+           parseResult.currItemPos++;
+
            return std::nullopt;
     }
 
@@ -275,6 +277,8 @@ Parser::parseOption(std::shared_ptr<Command> command,
     }
 
     parseText.pop_front();
+    parseResult.currItemPos++;
+
     ARGUNAUGHT_TRACE("Option found: %s\n", opt.has_value() ? "True" : "False");
     if(opt.has_value()) {
         Option& foundOption = opt.value();
@@ -293,13 +297,19 @@ Parser::parseOption(std::shared_ptr<Command> command,
             ARGUNAUGHT_TRACE("Got option value: '%s'\n", parseText.front().c_str());
             optResult.values.push_back(parseText.front());
             parseText.pop_front();
+            parseResult.currItemPos++;
+
             paramCounter++; 
         }
     
         ARGUNAUGHT_TRACE("Done checking for option values. %d found\n", paramCounter);
         return std::optional<OptionResult>(optResult);
     } else {
-        parseResult.errors.push_back({ParseErrorType::UnknownOption, -1, optionName});
+        parseResult.errors.push_back({
+                ParseErrorType::UnknownOption, 
+                static_cast<int>(parseResult.currItemPos),
+                optionName
+            });
     }
 
     return std::nullopt;
@@ -358,6 +368,7 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
 
     for(const auto& opt : existingOptions) {
         result.options.push_back(opt);
+        result.currItemPos++;
     }
 
     if(args.size() == 0) return result;
@@ -395,6 +406,7 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
             result.command = com;
 
             args.pop_front();
+            result.currItemPos++;
 
             result.optionsList.addOptions(com->options);
 
@@ -431,6 +443,7 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
             ARGUNAUGHT_TRACE("Found sub command '%s'\n", com->name.c_str());
             
             args.pop_front();
+            result.currItemPos++;
             result = subCom->handler(*this, result.options, args);
             
             return result;
@@ -445,6 +458,7 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
         ARGUNAUGHT_TRACE("Got positional arg: '%s'\n", args.front().c_str());
         result.positionalArgs.push_back(args.front());
         args.pop_front();
+        result.currItemPos++;
     }
     return result;
 }

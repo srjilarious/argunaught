@@ -139,6 +139,9 @@ private:
     //! We keep track of the options from the parser for use in sub parsing.
     OptionList optionsList;
 
+    //! We track the current item position in case of errors.
+    std::size_t currItemPos = 0;
+    
 public:
     //! Options found, merged result of global and command options.
     OptionResultList options;
