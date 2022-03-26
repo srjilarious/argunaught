@@ -41,6 +41,24 @@ TEST_CASE( "Test various option conditions", "[options]" ) {
         REQUIRE(errors[0].pos == 1);
         REQUIRE(errors[0].value == "beta");
     }
+
+    SECTION( "An option must be known 2." ) {
+        auto argu = argunaught::Parser("Cool Test App")
+            .options({
+                {"global", "g", "A global option", 1},
+                {"delta", "d", "Another global option", 0}
+            });
+
+        REQUIRE(!argu.hasConfigurationError());
+        const char* args[] = {"test", "--delta", "--beta"};
+        auto parseResult = argu.parse(3, args);
+        REQUIRE(parseResult.hasError());
+        auto errors = parseResult.errors;
+        REQUIRE(errors.size() == 1);
+        REQUIRE(errors[0].type == argunaught::ParseErrorType::UnknownOption);
+        REQUIRE(errors[0].pos == 2);
+        REQUIRE(errors[0].value == "beta");
+    }
 }
 
 TEST_CASE( "Test various command conditions", "[command]" ) {
