@@ -9,6 +9,9 @@
 #include <memory>
 #include <optional>
 
+#include <exception>
+#include <stdexcept>
+
 #include "forward_decl.hpp"
 #include "formatting.hpp"
 
@@ -164,6 +167,9 @@ public:
     
     //! Returns the option result and its params if it was found during parsing.
     std::optional<OptionResult> getOption(std::string optionLongName) const;
+ 
+    //! Returns the options result and its params, or creates a default one if none was parsed.
+    OptionResult getOption(std::string optionLongName, std::string defaultVal) const;
 
     //! Returns whether the given option was found during parsing.
     bool hasOption(std::string optionLongName) const;

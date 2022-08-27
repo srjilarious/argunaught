@@ -2,7 +2,7 @@ from conans import ConanFile, CMake
 
 class ArgunaughtConan(ConanFile):
     name = "argunaught"
-    version = "1.0"
+    version = "1.1"
     license = "MIT"
     author = "Jeff DeWall"
     url = "https://github.com/srjilarious/argunaught"
