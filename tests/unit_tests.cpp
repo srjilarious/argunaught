@@ -24,6 +24,40 @@ TEST_CASE( "Test various option conditions", "[options]" ) {
         REQUIRE(errors[0].message == expectedMessage);
     }
 
+    SECTION( "A short option must not begin with a number" ) {
+        auto argu = argunaught::Parser("Cool Test App")
+            .options({
+                {"test", "1", "A global option", 1}
+            });
+
+        // TODO: Add error checks to parser itself?
+        REQUIRE(argu.hasConfigurationError());
+        auto errors = argu.parserConfigErrors();
+        REQUIRE(errors.size() == 1);
+        REQUIRE(errors[0].type == argunaught::ParserConfigErrorType::OptionBeginsWithNumber);
+        auto expectedMessage = 
+                "Error adding option [OptionBeginsWithNumber]: "
+                "'--test', '-1', numParams=1, description='A global option'";
+        REQUIRE(errors[0].message == expectedMessage);
+    }
+
+    SECTION( "A long option must not begin with a number" ) {
+        auto argu = argunaught::Parser("Cool Test App")
+            .options({
+                {"1test", "t", "A global option", 1}
+            });
+
+        // TODO: Add error checks to parser itself?
+        REQUIRE(argu.hasConfigurationError());
+        auto errors = argu.parserConfigErrors();
+        REQUIRE(errors.size() == 1);
+        REQUIRE(errors[0].type == argunaught::ParserConfigErrorType::OptionBeginsWithNumber);
+        auto expectedMessage = 
+                "Error adding option [OptionBeginsWithNumber]: "
+                "'--1test', '-t', numParams=1, description='A global option'";
+        REQUIRE(errors[0].message == expectedMessage);
+    }
+
     SECTION( "An option must be known." ) {
         auto argu = argunaught::Parser("Cool Test App")
             .options({

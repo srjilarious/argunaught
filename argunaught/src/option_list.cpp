@@ -23,6 +23,14 @@ OptionList::addOption(Option opt)
         return ParserConfigErrorType::LongOptionNameMissing;
     }
 
+    if(std::isdigit(opt.longName[0])) {
+        return ParserConfigErrorType::OptionBeginsWithNumber;
+    }
+
+    if(opt.shortName.size() > 0 && std::isdigit(opt.shortName[0])) {
+        return ParserConfigErrorType::OptionBeginsWithNumber;
+    }
+
     for(auto& el : mOptions) {
         if(opt.longName == el.longName ||
            opt.shortName == el.shortName) {

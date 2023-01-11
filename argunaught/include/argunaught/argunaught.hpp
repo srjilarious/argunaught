@@ -30,6 +30,7 @@ enum class ParserConfigErrorType
 {
     NoError,
     LongOptionNameMissing,
+    OptionBeginsWithNumber,
     DuplicateOption,
     CommandNameMissing,
     DuplicateCommandName,

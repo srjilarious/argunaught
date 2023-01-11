@@ -14,6 +14,9 @@ getParserConfigErrorName(ParserConfigErrorType type)
         case ParserConfigErrorType::LongOptionNameMissing:
             return "LongOptionNameMissing";
 
+        case ParserConfigErrorType::OptionBeginsWithNumber:
+            return "OptionBeginsWithNumber";
+
         case ParserConfigErrorType::DuplicateOption:
             return "DuplicateOption";
 
