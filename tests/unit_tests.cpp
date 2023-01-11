@@ -572,7 +572,8 @@ TEST_CASE( "Test grouped commands", "[groups]" ) {
     int counter = 0;
     auto argu = argunaught::Parser("Cool Grouped commands")
         .options({
-                {"delta", "d", "Another global option", 0}
+                {"delta", "d", "Another global option", 0},
+                {"check", "x", "A cool global option", 1}
             })
         .group("Fancy")
             .command("sub", "Unit test sub-command", 
@@ -601,6 +602,100 @@ TEST_CASE( "Test grouped commands", "[groups]" ) {
         REQUIRE(parseResult.options[0].values.size() == 0);
         REQUIRE(parseResult.hasCommand());
         REQUIRE(parseResult.command->name == "sub");
+    }
+}
+
+TEST_CASE( "Test negative parameters", "[negatives]" ) {
+    int counter = 0;
+    auto argu = argunaught::Parser("Cool Grouped commands")
+        .options({
+                {"delta", "d", "Another global option", 0},
+                {"check", "c", "A cool global option", 1}
+            })
+        .group("Fancy")
+            .command("sub", "Unit test sub-command", 
+            [&counter] (auto& parseResult) -> int 
+            { 
+                counter = 100;
+                return 0;
+            })
+        .endGroup();
+
+    SECTION( "A negative number should work with no command") {
+        const char* args[] = {"test", "-123"};
+        auto parseResult = argu.parse(2, args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 0);
+        REQUIRE(parseResult.positionalArgs.size() == 1);
+        REQUIRE(parseResult.positionalArgs[0] == "-123");
+    }
+
+    SECTION( "An option plus a negative number should work with no command") {
+        const char* args[] = {"test", "--delta", "-123"};
+        auto parseResult = argu.parse(3, args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 1);
+        REQUIRE(parseResult.options[0].optionName == "delta");
+        REQUIRE(parseResult.options[0].values.size() == 0);
+        REQUIRE(parseResult.positionalArgs.size() == 1);
+        REQUIRE(parseResult.positionalArgs[0] == "-123");
+    }
+
+    SECTION( "An option plus a few numbers should work with no command") {
+        const char* args[] = {"test", "--delta", "12", "-456", "256"};
+        auto parseResult = argu.parse(5, args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 1);
+        REQUIRE(parseResult.options[0].optionName == "delta");
+        REQUIRE(parseResult.options[0].values.size() == 0);
+        REQUIRE(parseResult.positionalArgs.size() == 3);
+        REQUIRE(parseResult.positionalArgs[0] == "12");
+        REQUIRE(parseResult.positionalArgs[1] == "-456");
+        REQUIRE(parseResult.positionalArgs[2] == "256");
+    }
+
+    SECTION( "An option with a negative number parameter should work") {
+        const char* args[] = {"test", "-c", "-456"};
+        auto parseResult = argu.parse(3, args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 1);
+        REQUIRE(parseResult.options[0].optionName == "check");
+        REQUIRE(parseResult.options[0].values.size() == 1);
+        REQUIRE(parseResult.options[0].values[0] == "-456");
+        REQUIRE(parseResult.positionalArgs.size() == 0);
+    }
+
+    SECTION( "An option with a negative number parameter and positional args should work") {
+        const char* args[] = {"test", "-c", "-456", "-100", "-200"};
+        auto parseResult = argu.parse(5, args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 1);
+        REQUIRE(parseResult.options[0].optionName == "check");
+        REQUIRE(parseResult.options[0].values.size() == 1);
+        REQUIRE(parseResult.options[0].values[0] == "-456");
+        REQUIRE(parseResult.positionalArgs.size() == 2);
+        REQUIRE(parseResult.positionalArgs[0] == "-100");
+        REQUIRE(parseResult.positionalArgs[1] == "-200");
+    }
+
+    SECTION( "A command with a negative number should work with no command") {
+        const char* args[] = {"test", "sub", "-123"};
+        auto parseResult = argu.parse(3, args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 0);
+        REQUIRE(parseResult.positionalArgs.size() == 1);
+        REQUIRE(parseResult.positionalArgs[0] == "-123");
+    }
+
+    SECTION( "A command with a few numbers plus a negative number should work with no command") {
+        const char* args[] = {"test", "sub", "10", "-123", "200"};
+        auto parseResult = argu.parse(5, args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 0);
+        REQUIRE(parseResult.positionalArgs.size() == 3);
+        REQUIRE(parseResult.positionalArgs[0] == "10");
+        REQUIRE(parseResult.positionalArgs[1] == "-123");
+        REQUIRE(parseResult.positionalArgs[2] == "200");
     }
 }
 

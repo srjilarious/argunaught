@@ -294,9 +294,17 @@ Parser::parseOption(std::shared_ptr<Command> command,
         // Parse any values until the next option.
         while(!parseText.empty() && 
               (foundOption.maxNumParams == -1 || 
-               paramCounter < foundOption.maxNumParams) &&
-              parseText.front()[0] != '-')
+               paramCounter < foundOption.maxNumParams)
+              )
         {
+            const auto& currOptValue = parseText.front();
+            if(currOptValue[0] == '-' && currOptValue.size() > 1) {
+                // Only break out of the option parameter loop if
+                // we find a `-` not followed by a number.  negative
+                // numbers are fine.
+                if(!std::isdigit(currOptValue[1])) break;
+            }
+
             ARGUNAUGHT_TRACE("Got option value: '%s'\n", parseText.front().c_str());
             optResult.values.push_back(parseText.front());
             parseText.pop_front();
@@ -380,6 +388,13 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
 
     // parse any options before the command as global options
     while(!args.empty() && args.front()[0] == '-') {
+        const auto& currArg = args.front();
+        if(currArg.size() > 1 && std::isdigit(currArg[1])) {
+            // If we found a negative number, then we must have found 
+            // the beginning of the positional arguments, so break.
+            break;
+        }
+
         auto optResult = parseOption(nullptr, args, result);
         if(optResult.has_value()) {
             result.options.push_back(optResult.value());
@@ -414,6 +429,13 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
             result.optionsList.addOptions(com->options);
 
             while(!args.empty() && args.front()[0] == '-') {
+                const auto& currArg = args.front();
+                if(currArg.size() > 1 && std::isdigit(currArg[1])) {
+                    // If we found a negative number, then we must have found 
+                    // the beginning of the positional arguments, so break.
+                    break;
+                }
+
                 auto optResult = parseOption(com, args, result);
                 if(optResult.has_value()) {
                     result.options.push_back(optResult.value());
