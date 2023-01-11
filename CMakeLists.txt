@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(argunaught VERSION 1.0.0 LANGUAGES CXX)
+project(argunaught VERSION 1.2.0 LANGUAGES CXX)
 
 add_subdirectory(argunaught)
 add_subdirectory(tests)
