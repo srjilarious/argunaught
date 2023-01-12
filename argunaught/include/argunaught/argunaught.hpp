@@ -108,10 +108,11 @@ private:
     std::vector<Option> mOptions;
 
 public:
-    OptionList() {}
-
+    OptionList() = default;
     OptionList(std::vector<Option> opts);
     OptionList(const OptionList& opts);
+
+    OptionList& operator=( const OptionList& ) = default;
 
     //! Adds an option to the list of supported options
     ParserConfigErrorType addOption(Option opt);

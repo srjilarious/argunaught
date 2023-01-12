@@ -349,7 +349,7 @@ Parser::parse(int argc, const char* argv[]) const
 
     // Create a deque of strings
     std::deque<std::string> args;
-    for(size_t ii = 0; ii < argc; ++ii)
+    for(int ii = 0; ii < argc; ++ii)
     {
         args.emplace_back(argv[ii]);
     }
@@ -444,7 +444,7 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
                     break;
                 }
 
-                ARGUNAUGHT_TRACE("Done parsing option '%s', ended with %d params\n",
+                ARGUNAUGHT_TRACE("Done parsing option '%s', ended with %lu params\n",
                 optResult.value().optionName.c_str(), optResult.value().values.size());
             }
 
@@ -465,7 +465,7 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
 
     for(const auto& subCom : allSubParsers) {
         if(subCom->name == args[0]) {
-            ARGUNAUGHT_TRACE("Found sub command '%s'\n", com->name.c_str());
+            ARGUNAUGHT_TRACE("Found sub command '%s'\n", subCom->name.c_str());
             
             args.pop_front();
             result.currItemPos++;
@@ -476,7 +476,7 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
     }
 
     // Fall through in case of no command, sub command, or remaining args for command.
-    ARGUNAUGHT_TRACE("Checking positional args, %d left", args.size());
+    ARGUNAUGHT_TRACE("Checking positional args, %lu left", args.size());
 
     // Anything left over is a positional argument.
     while(!args.empty()) {

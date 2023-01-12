@@ -32,8 +32,11 @@ OptionList::addOption(Option opt)
     }
 
     for(auto& el : mOptions) {
-        if(opt.longName == el.longName ||
-           opt.shortName == el.shortName) {
+        if(opt.longName == el.longName) {
+            return ParserConfigErrorType::DuplicateOption;
+        } 
+        else if(opt.shortName.size() > 0 &&
+                opt.shortName == el.shortName) {
             return ParserConfigErrorType::DuplicateOption;
         }
     }

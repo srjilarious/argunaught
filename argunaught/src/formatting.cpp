@@ -6,42 +6,42 @@
 namespace 
 {
 
-std::string 
-replaceAll(std::string const& orig, char c, std::string const& replace)
-{
-    std::string newStr;
-    for(char ch : orig) {
-        if(ch == c) {
-            newStr += replace;
-        }
-        else {
-            newStr += ch;
-        }
-    }
-    return newStr;
-}
+// std::string 
+// replaceAll(std::string const& orig, char c, std::string const& replace)
+// {
+//     std::string newStr;
+//     for(char ch : orig) {
+//         if(ch == c) {
+//             newStr += replace;
+//         }
+//         else {
+//             newStr += ch;
+//         }
+//     }
+//     return newStr;
+// }
 
-std::vector<std::string>
-split(std::string const& orig, char c)
-{
-    std::vector<std::string> result;
-    std::string newStr;
-    for(char ch : orig) {
-        if(ch != c) {
-            newStr += ch;
-        }
-        else {
-            result.push_back(newStr);
-            newStr = "";
-        }
-    }
+// std::vector<std::string>
+// split(std::string const& orig, char c)
+// {
+//     std::vector<std::string> result;
+//     std::string newStr;
+//     for(char ch : orig) {
+//         if(ch != c) {
+//             newStr += ch;
+//         }
+//         else {
+//             result.push_back(newStr);
+//             newStr = "";
+//         }
+//     }
     
-    if(newStr.size() != 0) {
-        result.push_back(newStr);
-    }
+//     if(newStr.size() != 0) {
+//         result.push_back(newStr);
+//     }
 
-    return result;
-}
+//     return result;
+// }
 
 std::size_t
 displayWidth()
@@ -202,7 +202,8 @@ DefaultHelpFormatter::generateCommandHelp(
             
     if(com->description != "") {
         // Justify the description.
-        if(com->name.size() < maxOptComLength) {
+        if(maxOptComLength > 0 && 
+           com->name.size() < static_cast<std::size_t>(maxOptComLength)) {
             indent(maxOptComLength - com->name.size());
         }
 
@@ -223,7 +224,8 @@ DefaultHelpFormatter::generateCommandHelp(
         if(opt.description != "") {
 
             // Justify the description.
-            if((optLen+mStyle.spacesPerIndentLevel) < maxOptComLength) {
+            if(maxOptComLength > 0 &&
+               (optLen+mStyle.spacesPerIndentLevel) < static_cast<std::size_t>(maxOptComLength)) {
                 indent(maxOptComLength - optLen - mStyle.spacesPerIndentLevel);
             }
 
@@ -247,7 +249,8 @@ DefaultHelpFormatter::generateSubParserHelp(
     if(com->description != "") {
 
         // Justify the description.
-        if(com->name.size() < maxOptComLength) {
+        if(maxOptComLength > 0 && 
+           com->name.size() < static_cast<std::size_t>(maxOptComLength)) {
             indent(maxOptComLength - com->name.size());
         }
 
@@ -269,7 +272,8 @@ DefaultHelpFormatter::generateSubParserHelp(
         if(opt.description != "") {
 
             // Justify the description.
-            if((optLen+mStyle.spacesPerIndentLevel) < maxOptComLength) {
+            if((maxOptComLength > 0 &&
+                optLen+mStyle.spacesPerIndentLevel) < static_cast<std::size_t>(maxOptComLength)) {
                 indent(maxOptComLength - optLen - mStyle.spacesPerIndentLevel);
             }
 

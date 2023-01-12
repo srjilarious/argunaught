@@ -13,4 +13,10 @@ add_library(
     src/sub_parser.cpp
 )
 
+if(MSVC)
+    target_compile_options(argunaught PRIVATE /W4)
+else()
+    target_compile_options(argunaught PRIVATE -Wall -Wextra)
+endif()
+
 target_include_directories(argunaught PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

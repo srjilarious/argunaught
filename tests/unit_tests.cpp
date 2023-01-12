@@ -255,9 +255,25 @@ TEST_CASE( "Test global options only", "[options]" ) {
     auto argu = argunaught::Parser("Cool Test App")
         .options({
             {"gamma", "g", "A global option", 1},
-            {"delta", "d", "Another global option", 0}
+            {"delta", "d", "Another global option", 0},
+            {"alpha", "", "A long-only option", 0},
+            {"beta", "", "Another long-only option", 0}
         });
     
+    SECTION("Multiple long only options should work") {
+        const char* args[] = {"test", "--alpha", "--beta"};
+        auto parseResult = argu.parse(3, args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(parseResult.options.size() == 2);
+        REQUIRE(parseResult.hasOption("alpha"));
+        REQUIRE(parseResult.options[0].optionName == "alpha");
+        REQUIRE(parseResult.options[0].values.size() == 0);
+
+        REQUIRE(parseResult.hasOption("beta"));
+        REQUIRE(parseResult.options[1].optionName == "beta");
+        REQUIRE(parseResult.options[1].values.size() == 0);
+    }
+
     SECTION( "Single option without param should work") {
         const char* args[] = {"test", "-d"};
         auto parseResult = argu.parse(2, args);
