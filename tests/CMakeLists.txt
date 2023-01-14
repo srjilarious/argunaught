@@ -63,7 +63,16 @@ include(${CMAKE_BINARY_DIR}/conan.cmake)
 conan_cmake_run(REQUIRES catch2/2.13.8
              BASIC_SETUP)
 
-add_executable(unit_tests unit_tests.cpp)
+add_executable(unit_tests 
+    unit/unit_tests.cpp
+    unit/command_tests.cpp
+    unit/group_tests.cpp
+    unit/options_tests.cpp
+    unit/positional_args_tests.cpp
+    unit/sub_parser_tests.cpp
+    unit/word_wrap_tests.cpp
+  )
+
 target_link_libraries(unit_tests argunaught ${CONAN_LIBS})
 
 set_target_properties(
