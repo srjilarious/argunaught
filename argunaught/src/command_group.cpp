@@ -57,4 +57,18 @@ CommandGroup::subParser(
     return *this; 
 }
 
+CommandPtr 
+CommandGroup::getCommand(std::string name) const
+{
+    auto it = std::find_if(commands.begin(), commands.end(), [&name] (auto& c) {
+        return c->name == name;
+    });
+
+    if(it != commands.end()) {
+        return *it;
+    }
+
+    return nullptr;
+}
+
 }

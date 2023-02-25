@@ -327,7 +327,7 @@ Parser::parseOption(std::shared_ptr<Command> command,
 }
 
 CommandPtr 
-Parser::getCommand(std::string name)
+Parser::getCommand(std::string name) const
 {
     auto it = std::find_if(mCommands.begin(), mCommands.end(), [&name] (auto& c) {
         return c->name == name;
@@ -335,6 +335,14 @@ Parser::getCommand(std::string name)
 
     if(it != mCommands.end()) {
         return *it;
+    }
+
+    // Also look for the command in command groups
+    for(const auto& g : mGroups) {
+        auto cmd = g.getCommand(name);
+        if(cmd) {
+            return cmd;
+        }
     }
 
     return nullptr;
@@ -382,9 +390,9 @@ Parser::parse(std::deque<std::string> args, OptionResultList existingOptions) co
         result.currItemPos++;
     }
 
-    if(args.size() == 0) return result;
-
     result.optionsList.addOptions(mOptions);
+
+    if(args.size() == 0) return result;
 
     // parse any options before the command as global options
     while(!args.empty() && args.front()[0] == '-') {

@@ -257,6 +257,8 @@ public:
     //! Creates a subparser in the group, with extra options for the subparser
     CommandGroup& subParser(std::string name, std::string help, std::vector<Option> options, SubParserHandler func);
 
+    CommandPtr getCommand(std::string name) const;
+
     //! Ends the group returning a refernce to the parent instantiating parent to allow a fluent interface.
     Parser& endGroup() { return *mParent; }
 };
@@ -349,7 +351,7 @@ public:
     const OptionList& options() const { return mOptions; }
 
     //! Looks for a command defined of the parser and returns it, or nullptr if not found.
-    CommandPtr getCommand(std::string name);
+    CommandPtr getCommand(std::string name) const;
 
     //! Parses the command line, given argc and argv from main.
     ParseResult parse(int argc, const char* argv[]) const;

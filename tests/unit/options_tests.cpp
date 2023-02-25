@@ -89,6 +89,21 @@ TEST_CASE( "Test various option conditions", "[options]" ) {
         REQUIRE(errors[0].pos == 2);
         REQUIRE(errors[0].value == "beta");
     }
+
+    SECTION("No arguments should still let you check on options") {
+        auto argu = argunaught::Parser("Cool Test App")
+            .options({
+                {"global", "g", "A global option", 1},
+                {"delta", "d", "Another global option", 0}
+            });
+
+        REQUIRE(!argu.hasConfigurationError());
+        const char* args[] = {"test"};
+        auto parseResult = argu.parse(1, args);
+        REQUIRE(!parseResult.hasError());
+        REQUIRE(!parseResult.hasOption("global"));
+        REQUIRE(!parseResult.hasOption("delta"));
+    }
 }
 
 TEST_CASE( "Test global options only", "[options]" ) {

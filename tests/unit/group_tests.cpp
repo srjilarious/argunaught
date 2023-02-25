@@ -36,4 +36,9 @@ TEST_CASE( "Test grouped commands", "[groups]" ) {
         REQUIRE(parseResult.hasCommand());
         REQUIRE(parseResult.command->name == "sub");
     }
+
+    SECTION("Should be able to find command within group") {
+        auto cmd = argu.getCommand("sub");
+        REQUIRE(cmd != nullptr);
+    }
 }
