@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.23)
 
 set(PROG_OUTPUT_DIR "${CMAKE_BINARY_DIR}")
 
